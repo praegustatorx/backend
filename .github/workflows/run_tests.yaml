@@ -1,4 +1,4 @@
-name: Running all tests
+name: Run Tests
 
 on:
   push:
@@ -23,13 +23,8 @@ jobs:
         
 
       - name: Install Dependencies
-        run: |
-         echo "Installing Dependencies..."
-         npm install
-         echo "Dependencies Installed"
+        run: npm install
 
 
       - name: Run Tests
-        run: |
-         echo "Running Tests..."
-         npm test
+        run: npm test
