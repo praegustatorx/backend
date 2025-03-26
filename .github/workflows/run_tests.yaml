@@ -1,0 +1,35 @@
+name: Running all tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+
+      - name: Echo Name of workflow
+        run: echo "Running Tests"
+        
+
+      - name: Install Dependencies
+        run: |
+         echo "Installing Dependencies..."
+         npm install
+         echo "Dependencies Installed"
+
+
+      - name: Run Tests
+        run: |
+         echo "Running Tests..."
+         npm test
