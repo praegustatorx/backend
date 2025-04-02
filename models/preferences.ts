@@ -1,9 +1,13 @@
-import { Option, Err, Ok, Result } from "ts-results-es";
+import { Option, Err, Ok, Result, None } from "ts-results-es";
 
 // ----- Preferences -----
 export type Preferences = {
   allergies: Option<Allergy[]>;
   diets: Option<Diet[]>;
+};
+
+export const createPreferences = (allergies: Option<Allergy[]> = None, diets: Option<Diet[]> = None): Preferences => {
+  return { allergies, diets };
 };
 
 // ----- Diet -----

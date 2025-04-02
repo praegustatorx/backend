@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
-import { Result, Err, Ok } from 'ts-results-es';
+import { Result, Err, Ok, Option, None } from 'ts-results-es';
+import { Preferences } from './preferences';
 
 const userSchema = new Schema({
   name: { type: String, required: true },
@@ -24,6 +25,7 @@ type User = {
     name: string;
     username: string;
     passwordHash: string;
+    preferences: Option<Preferences>;
 };
 
 export const validateUser = (
@@ -65,11 +67,12 @@ export const validateUser = (
 const createUser = (
     name: string,
     username: string,
-    password: string
+    password: string,
+    preferences: Option<Preferences> = None
 ): Result<User, string[]> => {
     return validateUser(name, username, password).map(() => {
         let passwordHash = hashPassword(password);
-        return { name, username, passwordHash};
+        return { name, username, passwordHash, preferences };
     });
 };
 
