@@ -1,4 +1,4 @@
-import { Option } from "ts-results-es";
+import { None, Option, Some } from "ts-results-es";
 import { Nutritions } from "./nutritional_information";
 
 /**
@@ -9,12 +9,26 @@ type GenericIngredient = {
     name: string;
 }
 
+export function CreateGenericIngredient(id: string, name: string): GenericIngredient {
+    return {
+        id,
+        name
+    };
+}
+
 /**
  * Representing the quantity of an ingredient.
 */
 type Measurement = {
     quantity: number;
     unit: Unit;
+}
+
+export function CreateMeasurement(quantity: number, unit: Unit): Measurement {
+    return {
+        quantity,
+        unit
+    };
 }
 // TODO: Create a type PantryUnit, which will be type limited to unit: Unit.MILILITER | Unit.GRAM
 
@@ -42,6 +56,50 @@ export type PantryIngredient = {
     genericId: string;
     quantity: Option<Measurement>;
     nutrition: Nutritions;
+    expiration_date: Option<Date>;
+}
+
+export function CreatePantryIngredient(
+    id: string,
+    brand: Option<string> = None,
+    genericId: string,
+    quantity: Option<Measurement> = None,
+    nutrition: Nutritions,
+    expiration_date: Option<ExpDate> = None
+): PantryIngredient {
+    return {
+        id,
+        brand,
+        genericId,
+        quantity,
+        nutrition,
+        expiration_date
+    };
+}
+
+type ExpDate = Date;
+
+const CreateExpDate = (
+    year?: number,
+    month?: number,
+    day?: number
+): Date => {
+    let date: Date;
+
+    if (year === undefined || month === undefined || day === undefined) {
+        date = new Date();
+    } else {
+        date = new Date(year, month, day);
+    }
+
+    date.setHours(0, 0, 0, 0);
+    return date;
+};
+
+
+
+const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
+    return ingredient.expiration_date.isSome() ? ingredient.expiration_date.unwrap() <= date : false;
 }
 
 /**
@@ -51,4 +109,14 @@ export type PantryIngredient = {
 type RecipeIngredient = {
     genericId: string;
     quantity: Option<Measurement>;
+}
+
+export function CreateRecipeIngredient(
+    genericId: string,
+    quantity: Option<Measurement> = None
+): RecipeIngredient {
+    return {
+        genericId,
+        quantity
+    };
 }
