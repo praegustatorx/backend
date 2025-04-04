@@ -1,4 +1,4 @@
-import { None, Option, Some } from "ts-results-es";
+import { None, Option } from "ts-results-es";
 import { Nutritions } from "./nutritional_information";
 
 /**
@@ -33,7 +33,7 @@ export function CreateMeasurement(quantity: number, unit: Unit): Measurement {
 // TODO: Create a type PantryUnit, which will be type limited to unit: Unit.MILILITER | Unit.GRAM
 
 // TODO: Add more or less measurements if needed
-enum Unit {
+export enum Unit {
     MILLILITER = "milliliter",
     LITER = "liter",
     GRAM = "gram",
