@@ -98,7 +98,7 @@ export const CreateExpDate = (
 
 export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
     return ingredient.expiration_date
-        .map((expDate) => expDate < date)
+        .map((expDate) => expDate <= date)
         .unwrapOrElse(() => false);
 }
 
