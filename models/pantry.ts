@@ -1,5 +1,5 @@
 import { Err, Ok, Result } from "ts-results-es";
-import { PantryIngredient } from "./ingredient";
+import { CreateExpDate, ExpDate, isIngredientExpired, PantryIngredient } from "./ingredient";
 
 export type Pantry = {
     ingredients: Map<string, PantryIngredient>;
@@ -19,4 +19,14 @@ export const addIngredient = (pantry: Pantry, ingredient: PantryIngredient): voi
 
 export const removeIngredient = (pantry: Pantry, ingredientId: string): Result<void, void> => {
     return pantry.ingredients.delete(ingredientId) ? Ok(undefined) : Err(undefined);
+};
+
+export const getExpiredIngredients = (pantry: Pantry, date: ExpDate = CreateExpDate()): PantryIngredient[] => {
+    const expiredIngredients: PantryIngredient[] = [];
+    pantry.ingredients.forEach(ingredient => {
+        if (isIngredientExpired(ingredient)) {
+            expiredIngredients.push(ingredient);
+        }
+    });
+    return expiredIngredients;
 };
