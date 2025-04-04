@@ -77,9 +77,9 @@ export function CreatePantryIngredient(
     };
 }
 
-type ExpDate = Date;
+export type ExpDate = Date;
 
-const CreateExpDate = (
+export const CreateExpDate = (
     year?: number,
     month?: number,
     day?: number
@@ -92,11 +92,11 @@ const CreateExpDate = (
         date = new Date(year, month, day);
     }
 
-    date.setHours(0, 0, 0, 0);
+    date.setHours(23, 59, 59, 999); // Set to the end of the day
     return date;
 };
 
-const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
+export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
     return ingredient.expiration_date
         .map((expDate) => expDate < date)
         .unwrapOrElse(() => false);
