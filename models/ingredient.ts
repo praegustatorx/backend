@@ -36,7 +36,7 @@ enum Unit {
  * Representing an ingredient in the pantry.
  * The pantry ingredient is a concrete example of a generic ingredient with a brand and additional information.
 */
-type PantryIngredient = {
+export type PantryIngredient = {
     id: string;
     brand: Option<string>;
     genericId: string;
