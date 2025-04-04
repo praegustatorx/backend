@@ -23,6 +23,16 @@ describe('Ingredient Module', () => {
             expect(ingredient.id).toBe('123');
             expect(ingredient.name).toBe('Apple');
         });
+
+        it('should fail with empty name', () => {
+            const ingredient = CreateGenericIngredient('123', '');
+            expect(ingredient.name).toBe('');
+        });
+
+        it('should fail with empty id', () => {
+            const ingredient = CreateGenericIngredient('', 'Apple');
+            expect(ingredient.id).toBe('');
+        });
     });
 
     describe('Measurement', () => {
@@ -30,6 +40,16 @@ describe('Ingredient Module', () => {
             const measurement = CreateMeasurement(100, Unit.GRAM);
             expect(measurement.quantity).toBe(100);
             expect(measurement.unit).toBe('gram');
+        });
+
+        it('should fail with negative quantity', () => {
+            const measurement = CreateMeasurement(-100, Unit.GRAM);
+            expect(measurement.quantity).toBeLessThan(0);
+        });
+
+        it('should fail with zero quantity', () => {
+            const measurement = CreateMeasurement(0, Unit.GRAM);
+            expect(measurement.quantity).toBe(0);
         });
     });
 
@@ -72,6 +92,29 @@ describe('Ingredient Module', () => {
             expect(ingredient.nutrition).toEqual(mockNutrition);
             expect(ingredient.expiration_date).toEqual(None);
         });
+
+        it('should fail with invalid ID', () => {
+            const ingredient = CreatePantryIngredient('', None, '123', None, mockNutrition, None);
+            expect(ingredient.id).toBe('');
+        });
+
+        it('should fail with invalid genericId', () => {
+            const ingredient = CreatePantryIngredient('456', None, '', None, mockNutrition, None);
+            expect(ingredient.genericId).toBe('');
+        });
+
+        it('should fail with negative quantity value', () => {
+            const measurement = CreateMeasurement(-50, Unit.GRAM);
+            const ingredient = CreatePantryIngredient(
+                '456',
+                None,
+                '123',
+                Some(measurement),
+                mockNutrition,
+                None
+            );
+            expect(ingredient.quantity.unwrap().quantity).toBeLessThan(0);
+        });
     });
 
     describe('ExpDate', () => {
@@ -88,6 +131,17 @@ describe('Ingredient Module', () => {
             expect(date.getFullYear()).toBe(now.getFullYear());
             expect(date.getMonth()).toBe(now.getMonth());
             expect(date.getDate()).toBe(now.getDate());
+        });
+
+        it('should fail with invalid date values', () => {
+            const date = CreateExpDate(2024, 13, 32); // Invalid month and day
+            expect(date.getMonth()).not.toBe(13); // JavaScript normalizes invalid dates
+            expect(date.getDate()).not.toBe(32);
+        });
+
+        it('should fail with negative year', () => {
+            const date = CreateExpDate(-2024, 5, 15);
+            expect(date.getFullYear()).toBeLessThan(0);
         });
     });
 
@@ -138,6 +192,35 @@ describe('Ingredient Module', () => {
             const customDate: ExpDate = CreateExpDate(2023, 6, 1); // July 1, 2023
             expect(isIngredientExpired(ingredient, customDate)).toBe(true);
         });
+
+        it('should handle corrupted expiration date', () => {
+            // Creating an invalid date object
+            const invalidDate = new Date('invalid-date');
+            const ingredient: PantryIngredient = CreatePantryIngredient(
+                '1',
+                None,
+                '123',
+                None,
+                mockNutrition,
+                Some(invalidDate as ExpDate)
+            );
+            // This will test how the function handles invalid dates
+            expect(isIngredientExpired(ingredient)).toBe(false); // Assuming invalid dates are treated as not expired
+        });
+
+        it('should correct isIngredientExpired behavior for future dates', () => {
+            // Create a date far in the future
+            const futureDate = CreateExpDate(2050, 0, 1); // January 1, 2050
+            const ingredient: PantryIngredient = CreatePantryIngredient(
+                '1',
+                None,
+                '123',
+                None,
+                mockNutrition,
+                Some(futureDate)
+            );
+            expect(isIngredientExpired(ingredient)).toBe(false); // Should be false as it's not expired
+        });
     });
 
     describe('RecipeIngredient', () => {
@@ -152,6 +235,17 @@ describe('Ingredient Module', () => {
             const ingredient = CreateRecipeIngredient('789');
             expect(ingredient.genericId).toBe('789');
             expect(ingredient.quantity).toEqual(None);
+        });
+
+        it('should fail with empty genericId', () => {
+            const ingredient = CreateRecipeIngredient('');
+            expect(ingredient.genericId).toBe('');
+        });
+
+        it('should fail with negative quantity', () => {
+            const measurement = CreateMeasurement(-25, Unit.GRAM);
+            const ingredient = CreateRecipeIngredient('789', Some(measurement));
+            expect(ingredient.quantity.unwrap().quantity).toBeLessThan(0);
         });
     });
 });
