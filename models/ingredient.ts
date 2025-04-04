@@ -56,7 +56,7 @@ export type PantryIngredient = {
     genericId: string;
     quantity: Option<Measurement>;
     nutrition: Nutritions;
-    expiration_date: Option<Date>;
+    expiration_date: Option<ExpDate>;
 }
 
 export function CreatePantryIngredient(
@@ -83,7 +83,7 @@ const CreateExpDate = (
     year?: number,
     month?: number,
     day?: number
-): Date => {
+): ExpDate => {
     let date: Date;
 
     if (year === undefined || month === undefined || day === undefined) {
@@ -96,10 +96,10 @@ const CreateExpDate = (
     return date;
 };
 
-
-
 const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
-    return ingredient.expiration_date.isSome() ? ingredient.expiration_date.unwrap() <= date : false;
+    return ingredient.expiration_date
+        .map((expDate) => expDate < date)
+        .unwrapOrElse(() => false);
 }
 
 /**
