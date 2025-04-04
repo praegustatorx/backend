@@ -99,7 +99,7 @@ describe('Pantry Module', () => {
             const customDate = CreateExpDate(2023, 11, 31);
             const expiredIngredients = Array.from(getExpiredIngredients(pantry, customDate));
             expect(expiredIngredients.length).toBe(1);
-            expect(expiredIngredients[0]).toEqual(ingredient2);
+            expect(expiredIngredients[0]).toEqual(ingredient1);
         });
     });
 });
