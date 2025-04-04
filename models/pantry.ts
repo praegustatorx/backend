@@ -21,12 +21,16 @@ export const removeIngredient = (pantry: Pantry, ingredientId: string): Result<v
     return pantry.ingredients.delete(ingredientId) ? Ok(undefined) : Err(undefined);
 };
 
-export const getExpiredIngredients = (pantry: Pantry, date: ExpDate = CreateExpDate()): PantryIngredient[] => {
-    const expiredIngredients: PantryIngredient[] = [];
-    pantry.ingredients.forEach(ingredient => {
-        if (isIngredientExpired(ingredient)) {
-            expiredIngredients.push(ingredient);
+/**
+ * A generator function that yields expired ingredients from the pantry.
+ * @param pantry The pantry to check for expired ingredients.
+ * @param date The date to compare against. Defaults to the current date.
+ * @returns An iterable iterator of expired PantryIngredient objects.
+ */
+export const getExpiredIngredients = function* (pantry: Pantry, date: ExpDate = CreateExpDate()): IterableIterator<PantryIngredient> {
+    for (const ingredient of pantry.ingredients.values()) {
+        if (isIngredientExpired(ingredient, date)) {
+            yield ingredient;
         }
-    });
-    return expiredIngredients;
+    }
 };
