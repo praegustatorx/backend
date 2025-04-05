@@ -21,6 +21,10 @@ export const removeIngredient = (pantry: Pantry, ingredientId: string): Result<v
     return pantry.ingredients.delete(ingredientId) ? Ok(undefined) : Err(undefined);
 };
 
+export const isEmpty = (pantry: Pantry): boolean => {
+    return pantry.ingredients.size === 0;
+};
+
 /**
  * A generator function that yields expired ingredients from the pantry.
  * @param pantry The pantry to check for expired ingredients.

@@ -1,5 +1,6 @@
 import { Result, Err, Ok, Option, None } from 'ts-results-es';
 import { Preferences } from './preferences';
+import { createPantry, Pantry } from './pantry';
 
 // TODO: Add abstractions for fields if needed
 type User = {
@@ -7,6 +8,7 @@ type User = {
     username: string;
     passwordHash: string;
     preferences: Option<Preferences>;
+    pantry: Pantry
 };
 
 export const validateUser = (
@@ -45,15 +47,16 @@ export const validateUser = (
     return Ok(undefined);
 };
 
-const createUser = (
+export const createUser = (
     name: string,
     username: string,
     password: string,
-    preferences: Option<Preferences> = None
+    preferences: Option<Preferences> = None,
+    pantry: Pantry = createPantry()
 ): Result<User, string[]> => {
     return validateUser(name, username, password).map(() => {
         let passwordHash = hashPassword(password);
-        return { name, username, passwordHash, preferences };
+        return { name, username, passwordHash, preferences, pantry };
     });
 };
 

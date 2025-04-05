@@ -1,3 +1,4 @@
+import { isEmpty } from '../models/pantry';
 import { validateUser } from '../models/user';
 
 describe('User Model', () => {
@@ -86,6 +87,24 @@ describe('User Model', () => {
             expect(errors).toContain('Name is required.');
             expect(errors).toContain('Username is required.');
             expect(errors).toContain('Password hash is required.');
+        });
+    });
+
+    describe('createUser function', () => {
+        test('should create user with empty pantry when given valid arguments', () => {
+            // Need to export createUser for this test
+            const { createUser } = require('../models/user');
+
+            const name = 'John Doe';
+            const username = 'johndoe';
+            const password = 'aSecurePasswordHash1234567890123456789012345678901234567890123456789';
+
+            const result = createUser(name, username, password);
+
+            expect(result.isOk()).toBe(true);
+            const user = result.unwrap();
+            expect(user.pantry).toBeDefined();
+            expect(isEmpty(user.pantry)).toBe(true);
         });
     });
 });
