@@ -4,7 +4,7 @@ import { Nutritions } from "./nutritional_information";
 /**
  * Representing abstracted ingredient definition. 
  */
-type GenericIngredient = {
+export type GenericIngredient = {
     id: string;
     name: string;
 }
