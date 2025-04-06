@@ -1,8 +1,8 @@
 import {
 
     NutrientUnit,
+    createNutritions,
     createNutrientAmount,
-    createNutritions
 } from "../models/nutritional_information";
 
 describe('Nutritional Information Module', () => {

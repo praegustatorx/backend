@@ -26,6 +26,6 @@ const getAllRecipes = (cookbook: Cookbook): Recipe[] => {
     return cookbook.recipes;
 };
 
-export const isEmpty = (cookbook: Cookbook): boolean => {
+const isEmpty = (cookbook: Cookbook): boolean => {
     return cookbook.recipes.length === 0;
 };

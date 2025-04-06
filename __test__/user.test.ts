@@ -1,5 +1,5 @@
 import { isEmpty } from '../models/pantry';
-import { validateUser } from '../models/user';
+import { validateUser, createUser } from '../models/user';
 
 describe('User Model', () => {
     describe('validateUser function', () => {
@@ -92,8 +92,6 @@ describe('User Model', () => {
 
     describe('createUser function', () => {
         test('should create user with empty pantry when given valid arguments', () => {
-            // Need to export createUser for this test
-            const { createUser } = require('../models/user');
 
             const name = 'John Doe';
             const username = 'johndoe';

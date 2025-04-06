@@ -1,4 +1,4 @@
-import { createDiet, Diet, Allergy } from '../models/preferences';
+import { createDiet, Allergy } from '../models/preferences';
 import { Blacklist, CreateBlacklist, addToBlacklist, removeFromBlacklist, isBlacklisted } from '../models/preferences';
 
 describe('Preferences Model', () => {

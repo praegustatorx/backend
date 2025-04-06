@@ -8,7 +8,7 @@ export type Preferences = {
   blacklist: Option<Blacklist>;
 };
 
-export const createPreferences = (allergies: Option<Allergy[]> = None, diets: Option<Diet[]> = None, blacklist: Option<Blacklist> = None): Preferences => {
+const createPreferences = (allergies: Option<Allergy[]> = None, diets: Option<Diet[]> = None, blacklist: Option<Blacklist> = None): Preferences => {
   return { allergies, diets, blacklist };
 };
 

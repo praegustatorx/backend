@@ -26,7 +26,7 @@ export const createNutritions = (
 /**
  * Nutritional Amount per Portion
  */
-export type NutrientAmount = {
+type NutrientAmount = {
     amount: number;
     unit: NutrientUnit;
 }
