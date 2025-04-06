@@ -4,7 +4,7 @@ export type Cookbook = {
     recipes: Recipe[];
 };
 
-const createCookbook = (): Cookbook => {
+export const createCookbook = (): Cookbook => {
     return {
         recipes: [],
     };
@@ -24,4 +24,8 @@ const searchRecipesByName = (cookbook: Cookbook, name: string): Recipe[] => {
 
 const getAllRecipes = (cookbook: Cookbook): Recipe[] => {
     return cookbook.recipes;
+};
+
+export const isEmpty = (cookbook: Cookbook): boolean => {
+    return cookbook.recipes.length === 0;
 };

@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { Result, Err, Ok, Option, None } from 'ts-results-es';
 import { Preferences } from './preferences';
 import { createPantry, Pantry } from './pantry';
+import { Cookbook, createCookbook } from './cookbook';
 
 const userSchema = new Schema({
   name: { type: String, required: true },
@@ -28,6 +29,7 @@ type User = {
     passwordHash: string;
     preferences: Option<Preferences>;
     pantry: Pantry
+    cookbook: Cookbook
 };
 
 export const validateUser = (
@@ -71,11 +73,12 @@ export const createUser = (
     username: string,
     password: string,
     preferences: Option<Preferences> = None,
-    pantry: Pantry = createPantry()
+    pantry: Pantry = createPantry(),
+    cookbook: Cookbook = createCookbook(),
 ): Result<User, string[]> => {
     return validateUser(name, username, password).map(() => {
         let passwordHash = hashPassword(password);
-        return { name, username, passwordHash, preferences, pantry };
+        return { name, username, passwordHash, preferences, pantry, cookbook };
     });
 };
 
