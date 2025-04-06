@@ -106,7 +106,7 @@ export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate 
  * Representing a recipe ingredient.
  * The recipe ingredient is a concrete example of a generic ingredient with quantity.
 */
-type RecipeIngredient = {
+export type RecipeIngredient = {
     genericId: string;
     quantity: Option<Measurement>;
 }
