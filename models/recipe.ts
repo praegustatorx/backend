@@ -9,18 +9,38 @@ type Recipe = {
     description: Option<string>;
     ingredients: RecipeIngredient[];
     instructions: string[];
+    tags: Tag[];
 }
 
 export const createRecipe = (
     name: string,
     description: Option<string>,
     ingredients: RecipeIngredient[],
-    instructions: string[]
+    instructions: string[],
+    tags: Tag[] = []
 ): Recipe => {
     return {
         name,
         description,
         ingredients,
-        instructions
+        instructions,
+        tags
+    };
+};
+
+// ----- Tags ----- 
+// TODO: Add tag::id field if needed
+type Tag = {
+    name: string;
+    description: Option<string>;
+}
+
+export const createTag = (
+    name: string,
+    description: Option<string>
+): Tag => {
+    return {
+        name,
+        description
     };
 };
