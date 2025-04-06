@@ -12,7 +12,7 @@ export type Recipe = {
     tags: Tag[];
 }
 
-export const createRecipe = (
+const createRecipe = (
     name: string,
     description: Option<string>,
     ingredients: RecipeIngredient[],
@@ -35,7 +35,7 @@ type Tag = {
     description: Option<string>;
 }
 
-export const createTag = (
+const createTag = (
     name: string,
     description: Option<string>
 ): Tag => {
