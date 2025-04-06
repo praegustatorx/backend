@@ -4,7 +4,7 @@ import { RecipeIngredient } from "./ingredient";
 
 // TODO: Add cooking time, serving size, and dietary restrictions
 // TODO: Add insrtuctions abstraction if needed
-type Recipe = {
+export type Recipe = {
     name: string;
     description: Option<string>;
     ingredients: RecipeIngredient[];
