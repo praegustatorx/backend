@@ -21,10 +21,11 @@ const startServer = async () => {
     });
 }
 
-// Start the server first, then start the terminal chat if requested
-startServer().then(() => {
-    // Check if the terminal chat should be started
-    if (process.argv.includes('--chat')) {
+if (process.argv.includes('--chat')) {
+    console.warn(`${"\x1b[33m"}Running only the chat terminal.${"\x1b[0m"}`);
+    startTerminalChat();
+} else {
+    startServer().then(() => {
         startTerminalChat();
-    }
-});
+    });
+}
