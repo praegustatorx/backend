@@ -9,7 +9,7 @@ export type GenericIngredient = {
     name: string;
 }
 
-export function CreateGenericIngredient(id: string, name: string): GenericIngredient {
+export const CreateGenericIngredient = (id: string, name: string): GenericIngredient => {
     return {
         id,
         name
@@ -24,7 +24,7 @@ type Measurement = {
     unit: Unit;
 }
 
-export function CreateMeasurement(quantity: number, unit: Unit): Measurement {
+export const CreateMeasurement = (quantity: number, unit: Unit): Measurement => {
     return {
         quantity,
         unit
@@ -59,14 +59,14 @@ export type PantryIngredient = {
     expiration_date: Option<ExpDate>;
 }
 
-export function CreatePantryIngredient(
+export const CreatePantryIngredient = (
     id: string,
     brand: Option<string> = None,
     genericId: string,
     quantity: Option<Measurement> = None,
     nutrition: Nutritions,
     expiration_date: Option<ExpDate> = None
-): PantryIngredient {
+): PantryIngredient => {
     return {
         id,
         brand,
@@ -111,10 +111,10 @@ export type RecipeIngredient = {
     quantity: Option<Measurement>;
 }
 
-export function CreateRecipeIngredient(
+export const CreateRecipeIngredient = (
     genericId: string,
     quantity: Option<Measurement> = None
-): RecipeIngredient {
+): RecipeIngredient => {
     return {
         genericId,
         quantity
