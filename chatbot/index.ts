@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from '@google/genai';
 import readline from 'readline';
-import { Result, Ok, Err } from 'ts-results-es';
+import { Result, Ok, Err, Option, Some, None } from 'ts-results-es';
 dotenv.config();
 
 const apiKey = process.env.GEMINI_API_KEY;
@@ -10,20 +10,21 @@ if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not set in the environment variables.");
 }
 
-// Initialize the GoogleGenerativeAI client
-const genAI = new GoogleGenerativeAI(apiKey);
+const ai = new GoogleGenAI({ apiKey });
+const model = ai.models;
 
-// Choose a model (e.g., gemini-1.5-flash-latest or gemini-pro)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
+// TODO: the model should be an input parameter
 // --- Function to make a simple API call ---
-export const runBasicQuery = async (promptText: string): Promise<Result<string, Error>> => {
+export const runBasicQuery = async (promptText: string): Promise<Result<Option<string>, Error>> => {
     try {
         // Generating result (REMEMBER: Stateless)
-        const result = await model.generateContent(promptText);
-        const response = result.response;
-        return Ok(response.text());
-
+        const result = await model.generateContent({
+            model: 'gemini-2.0-flash-001',
+            contents: promptText,
+        });
+        const text = result.text;
+        const response = text ? Some(text) : None;
+        return Ok(response);
     } catch (error) {
         return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
     }
@@ -52,7 +53,9 @@ export const startTerminalChat = () => {
                 console.log('Gemini: ');
                 const response = await runBasicQuery(input);
                 if (response.isOk()) {
-                    console.log(response.unwrap());
+                    const inner = response.unwrap();
+                    const output = inner.isSome() ? inner.unwrap() : "No response received.";
+                    console.log(output);
                 } else {
                     console.log(`Error: ${response.unwrapErr().message}`);
                 }
