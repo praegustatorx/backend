@@ -77,7 +77,7 @@ export const createUser = (
     cookbook: Cookbook = createCookbook(),
 ): Result<User, string[]> => {
     return validateUser(name, username, password).map(() => {
-        let passwordHash = hashPassword(password);
+        const passwordHash = hashPassword(password);
         return { name, username, passwordHash, preferences, pantry, cookbook };
     });
 };
