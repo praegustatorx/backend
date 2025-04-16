@@ -23,13 +23,10 @@ const startServer = async () => {
     });
 }
 
-var gemini = CreateGemini("AIzaSyBbYsraA0pEJWZ97z7VEMjyk1uOOZ - SwRg");
 
 if (process.argv.includes('--chat')) {
     console.warn(`${"\x1b[33m"}Running only the chat terminal.${"\x1b[0m"}`);
-    startTerminalChat(gemini);
+    startTerminalChat();
 } else {
-    startServer().then(() => {
-        startTerminalChat(gemini);
-    });
+    startServer();
 }

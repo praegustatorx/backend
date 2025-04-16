@@ -2,12 +2,12 @@ import { None, Result, Some, Option, Ok, Err } from "ts-results-es";
 import * as readline from 'readline';
 import { AskGemini, Gemini } from "./gemini";
 
-export const runBasicQuery = async (model: Gemini, chatId: string, promptText: string): Promise<Result<Option<string>, Error>> => {
-    return AskGemini(model, chatId, promptText);
+export const runBasicQuery = async (chatId: string, promptText: string): Promise<Result<Option<string>, Error>> => {
+    return AskGemini(chatId, promptText);
 }
 
 // Function to read from terminal and send to Gemini
-export const startTerminalChat = (model:Gemini) => {
+export const startTerminalChat = () => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -31,7 +31,7 @@ export const startTerminalChat = (model:Gemini) => {
 
             try {
                 console.log('Gemini: ');
-                const response = await runBasicQuery(model, chatId, promptText);
+                const response = await runBasicQuery(chatId, promptText);
                 if (response.isOk()) {
                     const inner = response.unwrap();
                     const output = inner.isSome() ? inner.unwrap() : "No response received.";
