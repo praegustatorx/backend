@@ -14,11 +14,11 @@ export const createNutritions = (
     fat_amount: number = 0,
     carbohydrates_amount: number = 0
 ): Nutritions => {
-    let calories = createNutrientAmount(calories_amount, NutrientUnit.CALORIES);
-    let kilojoules = createNutrientAmount(calories_amount * 4.184, NutrientUnit.KILOJOULES);
-    let protein = createNutrientAmount(protein_amount, NutrientUnit.GRAM);
-    let fat = createNutrientAmount(fat_amount, NutrientUnit.GRAM);
-    let carbohydrates = createNutrientAmount(carbohydrates_amount, NutrientUnit.GRAM);
+    const calories = createNutrientAmount(calories_amount, NutrientUnit.CALORIES);
+    const kilojoules = createNutrientAmount(calories_amount * 4.184, NutrientUnit.KILOJOULES);
+    const protein = createNutrientAmount(protein_amount, NutrientUnit.GRAM);
+    const fat = createNutrientAmount(fat_amount, NutrientUnit.GRAM);
+    const carbohydrates = createNutrientAmount(carbohydrates_amount, NutrientUnit.GRAM);
 
     return { portion, calories: [kilojoules, calories], protein, fat, carbohydrates };
 };
