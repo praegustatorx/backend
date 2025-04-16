@@ -7,30 +7,33 @@ export type Gemini = {
     chats: Map<string, Chat>;
 }
 
+
 export const CreateGemini = (apiKey: string): Gemini => {
     const genai = new GoogleGenAI({ apiKey });
     const chats = new Map<string, Chat>();
-
+    
     return { genai, chats };
 }
 
+const model = CreateGemini(process.env.GEMINI_API_KEY!);
+
 // TODO: the model should be an input parameter
-const StartNewChat = (self: Gemini, chatId: string): Chat => {
+const StartNewChat = (chatId: string): Chat => {
     let chat: Chat;
-    if (self.chats.has(chatId)) {
-        chat = self.chats.get(chatId)!;
+    if (model.chats.has(chatId)) {
+        chat = model.chats.get(chatId)!;
     } else {
-        chat = self.genai.chats.create({ model: 'gemini-2.0-flash-001' });
-        self.chats.set(chatId, chat);
+        chat = model.genai.chats.create({ model: 'gemini-2.0-flash-001' });
+        model.chats.set(chatId, chat);
     }
     return chat;
 }
 
-export const AskGemini = async (self: Gemini, chatId: string, message: string): Promise<Result<Option<string>, Error>> => {
-    const userChat = GetChat(self.chats, chatId);
+export const AskGemini = async (chatId: string, message: string): Promise<Result<Option<string>, Error>> => {
+    const userChat = GetChat(model.chats, chatId);
     let chat: Chat;
     if (userChat.isNone()) {
-        chat = StartNewChat(self, chatId);
+        chat = StartNewChat(chatId);
     } else {
         chat = userChat.unwrap();
     }
