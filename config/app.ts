@@ -7,6 +7,7 @@ import fileUploadRouter from '../routes/fileUploadRoute';
 import preferencesRouter from '../routes/preferencesRoute';
 import pantryRouter from '../routes/pantryRoute';
 import cookbookRouter from '../routes/cookbookRoute';
+import chatRoute from '../routes/chatRoute';
 
 dotenv.config();
 
@@ -20,5 +21,7 @@ app.use('/file', fileUploadRouter);
 app.use('/preferences', preferencesRouter)
 app.use('/pantry', pantryRouter)
 app.use('/cookbook', cookbookRouter);
+app.use('/chat', chatRoute);
+console.log("Chat route loaded successfully");
 
 export default app;
