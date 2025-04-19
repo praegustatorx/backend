@@ -1,4 +1,4 @@
-import { Recipe } from "./recipe";
+import { containsTag, containsTagName, Recipe, Tag } from "./recipe";
 
 export type Cookbook = {
     recipes: Recipe[];
@@ -21,6 +21,16 @@ const removeRecipe = (cookbook: Cookbook, recipe: Recipe): void => {
 const searchRecipesByName = (cookbook: Cookbook, name: string): Recipe[] => {
     return cookbook.recipes.filter((recipe) => recipe.name.toLowerCase().includes(name.toLowerCase()));
 };
+
+const searchRecipesByTag = (cookbook: Cookbook, tag: Tag): Recipe[] => {
+    return cookbook.recipes.filter((recipe) => containsTag(recipe, tag));
+}
+
+// TODO? Search recipe only by tag name. No description required
+const searchRecipesByTagName = (cookbook: Cookbook, tagName: string): Recipe[] => {
+    return cookbook.recipes.filter((recipe) => containsTagName(recipe, tagName));
+}
+
 
 const getAllRecipes = (cookbook: Cookbook): Recipe[] => {
     return cookbook.recipes;
