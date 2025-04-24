@@ -2,14 +2,43 @@ import { Option, Err, Ok, Result, None, Some } from "ts-results-es";
 import { GenericIngredient } from "./ingredient";
 
 // ----- Preferences -----
+// Sets are used to avoid duplicates, reducing checking logic in the functions
 export type Preferences = {
-  allergies: Option<Set<Allergy>>;
-  diets: Option<Set<Diet>>;
-  blacklist: Option<Set<GenericIngredient>>;
+  allergies: Set<Allergy>;
+  diets: Set<Diet>;
+  blacklist: Set<GenericIngredient>;
 };
 
-export const createPreferences = (allergies: Option<Set<Allergy>> = None, diets: Option<Set<Diet>> = None, blacklist: Option<Set<GenericIngredient>> = None): Preferences => {
+export const createPreferences = (
+  allergies: Set<Allergy> = new Set(), 
+  diets: Set<Diet> = new Set(), 
+  blacklist: Set<GenericIngredient> = new Set()
+): Preferences => {
   return { allergies, diets, blacklist };
+};
+
+// ----- Preferences DTO -----
+// Used as local type instead of having each field as function arguments. Supposed to be used as {field1, field2, field3}
+type PreferencesDTO = {
+  allergies: Allergy[];
+  diets: Diet[];
+  blacklist: GenericIngredient[];
+};
+
+export const preferencesIntoDTO = (preferences: Preferences): PreferencesDTO => {
+  return {
+    allergies: [...preferences.allergies],
+    diets: [...preferences.diets],
+    blacklist: [...preferences.blacklist],
+  };
+};
+
+export const preferencesFromDTO = (dto: PreferencesDTO): Preferences => {
+  return createPreferences(
+    new Set(dto.allergies), 
+    new Set(dto.diets), 
+    new Set(dto.blacklist)
+  );
 };
 
 // ----- Diet -----
@@ -50,60 +79,45 @@ export enum Allergy {
 }
 
 // ----- Preferences Functions for Allergies -----
-
 export const addAllergy = (preferences: Preferences, allergy: Allergy) => {
-  if (preferences.allergies.isNone()) {
-    preferences.allergies = Some(new Set<Allergy>());
-  }
-
-  preferences.allergies = preferences.allergies.map(allergies => { allergies.add(allergy); return allergies });
+  preferences.allergies.add(allergy);
 };
 
 export const removeAllergy = (preferences: Preferences, allergy: Allergy): Result<void, Error> => {
-  if (preferences.allergies.isSome()) {
-    preferences.allergies.unwrap().delete(allergy);
+  if (preferences.allergies.has(allergy)) {
+    preferences.allergies.delete(allergy);
     return Ok(undefined);
   } else {
-    return Err(new Error('No allergies found in preferences.'));
+    return Err(new Error('Allergy not found in preferences.'));
   }
 };
 
 export const hasAllergy = (preferences: Preferences, allergy: Allergy): boolean => {
-  return preferences.allergies.isSome() && preferences.allergies.unwrap().has(allergy);
+  return preferences.allergies.has(allergy);
 };
 
+// Returns a copy of the allergies array. Any modifications to the returned array will not affect the original allergies in preferences.
 export const getAllergies = (preferences: Preferences): Allergy[] => {
-  return preferences.allergies.map(allergies => Array.from(allergies)).unwrapOr([]);
+  return [...preferences.allergies];
 };
 
 // ----- Preferences Functions for Diets -----
 export const addDiet = (preferences: Preferences, diet: Diet) => {
-  if (preferences.diets.isNone()) {
-    preferences.diets = Some(new Set<Diet>());
-  }
-
-  preferences.diets = preferences.diets.map(diets => { diets.add(diet); return diets });
+  preferences.diets.add(diet);
 };
 
 export const removeDietByName = (preferences: Preferences, dietName: string): Result<void, Error> => {
-  if (preferences.diets.isSome()) {
-    const diets = preferences.diets.unwrap();
-    // Convert Set to array, filter, and convert back to Set
-    const updatedDiets = new Set(Array.from(diets).filter(d => d.name !== dietName));
-    preferences.diets = Some(updatedDiets);
-    return Ok(undefined);
-  } else {
-    return Err(new Error('No diets found in preferences.'));
+  for (const diet of preferences.diets) {
+    if (diet.name === dietName) {
+      preferences.diets.delete(diet);
+      return Ok(undefined);
+    }
   }
+  return Err(new Error('Diet not found in preferences.'));
 };
 
 export const hasDiet = (preferences: Preferences, dietName: string): boolean => {
-  if (preferences.diets.isNone()) {
-    return false;
-  }
-
-  const diets = preferences.diets.unwrap();
-  for (const diet of diets) {
+  for (const diet of preferences.diets) {
     if (diet.name === dietName) {
       return true;
     }
@@ -111,39 +125,37 @@ export const hasDiet = (preferences: Preferences, dietName: string): boolean => 
   return false;
 };
 
+// Returns a copy of the diets array. Any modifications to the returned array will not affect the original diets in preferences.
 export const getDiets = (preferences: Preferences): Diet[] => {
-  return preferences.diets.map(diets => Array.from(diets)).unwrapOr([]);
+  return [...preferences.diets];
 };
 
 // ----- Preferences Functions for Blacklist -----
 export const addToBlacklist = (preferences: Preferences, ingredient: GenericIngredient): void => {
-  // Check if ingredient is already in blacklist to avoid duplicates
-  const blacklist = preferences.blacklist;
-  if (blacklist.isSome()) {
-    blacklist.unwrap().add(ingredient);
-  } else {
-    preferences.blacklist = Some(new Set([ingredient]));
-  };
+  // Sets automatically handle duplicates
+  preferences.blacklist.add(ingredient);
 }
 
 export const removeFromBlacklist = (preferences: Preferences, ingredientId: string): Result<void, Error> => {
-  if (preferences.blacklist.isNone()) {
-    return Err(new Error('No blacklist found in preferences.'));
+  if (preferences.blacklist.size === 0) {
+    return Err(new Error('No blacklist found.'));
   }
-  const blacklist = preferences.blacklist.unwrap();
-  const ingredientToRemove = Array.from(blacklist).find(ingredient => ingredient.id === ingredientId);
-  if (ingredientToRemove) {
-    blacklist.delete(ingredientToRemove);
-    return Ok(undefined);
-  } else {
-    return Err(new Error('Ingredient not found in blacklist.'));
-  };
+
+  for (const item of preferences.blacklist) {
+    if (item.id === ingredientId) {
+      preferences.blacklist.delete(item);
+      return Ok(undefined);
+    }
+  }
+
+  return Err(new Error('Ingredient not found in blacklist.'));
 }
 
 export const isBlacklisted = (preferences: Preferences, ingredientId: string): boolean => {
-  if (preferences.blacklist.isNone()) {
-    return false;
+  for (const item of preferences.blacklist) {
+    if (item.id === ingredientId) {
+      return true;
+    }
   }
-  const blacklist = preferences.blacklist.unwrap();
-  return Array.from(blacklist).some(item => item.id === ingredientId);
+  return false;
 };
