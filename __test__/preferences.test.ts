@@ -15,7 +15,6 @@ import {
   hasDiet,
   getDiets
 } from '../models/preferences';
-import { None, Some } from 'ts-results-es';
 
 describe('Preferences Model', () => {
   describe('createDiet function', () => {
@@ -98,7 +97,7 @@ describe('Preferences Model', () => {
     test('should return error when removing allergy from empty preferences', () => {
       const result = removeAllergy(preferences, Allergy.Nuts);
       expect(result.isOk()).toBe(false);
-      expect(result.unwrapErr().message).toContain('No allergies found');
+      expect(result.unwrapErr().message).toContain('Allergy not found in preferences.');
     });
 
     test('should get all allergies from preferences', () => {
@@ -137,7 +136,7 @@ describe('Preferences Model', () => {
     test('should return error when removing diet from empty preferences', () => {
       const result = removeDietByName(preferences, 'Vegan');
       expect(result.isOk()).toBe(false);
-      expect(result.unwrapErr().message).toContain('No diets found');
+      expect(result.unwrapErr().message).toContain('Diet not found in preferences.');
     });
 
     test('should get all diets from preferences', () => {
@@ -169,11 +168,7 @@ describe('Preferences Model', () => {
       addToBlacklist(preferences, ingredient1);
       
       // Check there's only one instance
-      if (preferences.blacklist.isSome()) {
-        expect(preferences.blacklist.unwrap().size).toBe(1);
-      } else {
-        fail('Blacklist should exist');
-      }
+      expect(preferences.blacklist.size).toBe(1);
     });
 
     test('should remove an ingredient from the blacklist', () => {
@@ -210,9 +205,9 @@ describe('Preferences Model', () => {
   describe('createPreferences function', () => {
     test('should create preferences with default empty values', () => {
       const preferences = createPreferences();
-      expect(preferences.allergies.isNone()).toBe(true);
-      expect(preferences.diets.isNone()).toBe(true);
-      expect(preferences.blacklist.isNone()).toBe(true);
+      expect(preferences.allergies.size).toBe(0);
+      expect(preferences.diets.size).toBe(0);
+      expect(preferences.blacklist.size).toBe(0);
     });
 
     test('should create preferences with provided values', () => {
@@ -221,15 +216,11 @@ describe('Preferences Model', () => {
       const diets = new Set([diet]);
       const blacklist = new Set([{ id: '1', name: 'Ingredient 1' }]);
 
-      const preferences = createPreferences(Some(allergies), Some(diets), Some(blacklist));
+      const preferences = createPreferences(allergies, diets, blacklist);
       
-      expect(preferences.allergies.isSome()).toBe(true);
-      expect(preferences.diets.isSome()).toBe(true);
-      expect(preferences.blacklist.isSome()).toBe(true);
-      
-      expect(preferences.allergies.unwrap()).toEqual(allergies);
-      expect(preferences.diets.unwrap()).toEqual(diets);
-      expect(preferences.blacklist.unwrap()).toEqual(blacklist);
+      expect(preferences.allergies).toEqual(allergies);
+      expect(preferences.diets).toEqual(diets);
+      expect(preferences.blacklist).toEqual(blacklist);
     });
   });
 });
