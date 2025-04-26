@@ -26,7 +26,7 @@ const startServer = async () => {
 
 if (process.argv.includes('--chat')) {
     console.warn(`${"\x1b[33m"}Running only the chat terminal.${"\x1b[0m"}`);
-    startTerminalChat();
+    startTerminalChat(false);
 } else {
     startServer();
 }

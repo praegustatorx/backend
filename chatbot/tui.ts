@@ -1,23 +1,25 @@
 import { None, Result, Some, Option, Ok, Err } from "ts-results-es";
 import * as readline from 'readline';
-import { AskGemini, Gemini } from "./gemini";
+import { AskGemini, AskGeminiStream, Gemini } from "./gemini";
+import { match } from "assert";
+import { GenerateContentResponse } from "@google/genai";
 
-export const runBasicQuery = async (chatId: string, promptText: string): Promise<Result<Option<string>, Error>> => {
-    return AskGemini(chatId, promptText);
-}
 
-// Function to read from terminal and send to Gemini
-export const startTerminalChat = () => {
+const initReadline = () => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
-
     console.log("=== Gemini Terminal Chat ===");
     console.log("Type your questions or 'exit' to quit");
-    console.log("===========================");
+    console.log("============================");
+    return rl;
+}
 
-    const askQuestion = () => {
+// Function to read from terminal and send to Gemini
+export const startTerminalChat = (inChunks: boolean) => {
+    const rl = initReadline();
+    const askQuestion = async () => {
         rl.question('You: ', async (input) => {
             if (input.toLowerCase() === 'exit') {
                 console.log('Goodbye!');
@@ -31,13 +33,13 @@ export const startTerminalChat = () => {
 
             try {
                 console.log('Gemini: ');
-                const response = await runBasicQuery(chatId, promptText);
-                if (response.isOk()) {
-                    const inner = response.unwrap();
-                    const output = inner.isSome() ? inner.unwrap() : "No response received.";
-                    console.log(output);
+
+                if (inChunks) {
+                    const stream = await AskGeminiStream(chatId, promptText);
+                    stream.isOk() ? printStream(stream.unwrap()) : console.error(`Error: ${stream.unwrapErr().message}`);
                 } else {
-                    console.log(`Error: ${response.unwrapErr().message}`);
+                    const response = await AskGemini(chatId, promptText);
+                    response.isOk() ? printResponse(response.unwrap()) : console.error(`Error: ${response.unwrapErr().message}`);
                 }
             } catch (error) {
                 console.log(`Error getting response: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -50,3 +52,13 @@ export const startTerminalChat = () => {
 
     askQuestion();
 };
+
+const printStream = async (stream: AsyncGenerator<GenerateContentResponse>) => {
+    for await (const next of stream) {
+        process.stdout.write(next.text ?? "");
+    }
+}
+
+const printResponse = (response: Option<string>) => {
+    response.isSome() ? console.log(response.unwrap()) : console.log("No response received.");
+}
