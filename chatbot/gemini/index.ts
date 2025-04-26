@@ -1,4 +1,4 @@
-import { Chat, GoogleGenAI } from '@google/genai';
+import { Chat, GenerateContentResponse, GoogleGenAI } from '@google/genai';
 import { Result, Ok, Err, Option, Some, None } from 'ts-results-es';
 // import { BaseChatbot } from '..';
 
@@ -11,7 +11,7 @@ export type Gemini = {
 export const CreateGemini = (apiKey: string): Gemini => {
     const genai = new GoogleGenAI({ apiKey });
     const chats = new Map<string, Chat>();
-    
+
     return { genai, chats };
 }
 
@@ -42,6 +42,26 @@ export const AskGemini = async (chatId: string, message: string): Promise<Result
         const response = result ? Some(result) : None;
         return Ok(response);
     } catch (error) {
+        return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
+    }
+};
+
+export const AskGeminiStream = async (chatId: string, message: string): Promise<Result<AsyncGenerator<GenerateContentResponse>, Error>>=> {
+    console.warn("Entering AskGeminiStream function");
+    const userChat = GetChat(model.chats, chatId);
+    let chat: Chat;
+    if (userChat.isNone()) {
+        chat = StartNewChat(chatId);
+    } else {
+        chat = userChat.unwrap();
+    }
+    try {
+        const stream =  await chat.sendMessageStream({ message: message });
+        return stream? Ok(stream) : Err(new Error("Stream is undefined"));
+    } catch (error) {
+        // return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
+        console.warn("Error in AskGeminiStream function");
+        console.log(error);
         return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
     }
 };
