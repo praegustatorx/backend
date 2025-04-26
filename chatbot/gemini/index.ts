@@ -18,7 +18,7 @@ export const CreateGemini = (apiKey: string): Gemini => {
 const model = CreateGemini(process.env.GEMINI_API_KEY!);
 
 // TODO: the model should be an input parameter
-const StartNewChat = (chatId: string): Chat => {
+const GetChat = (chatId: string): Chat => {
     let chat: Chat;
     if (model.chats.has(chatId)) {
         chat = model.chats.get(chatId)!;
@@ -30,13 +30,7 @@ const StartNewChat = (chatId: string): Chat => {
 }
 
 export const AskGemini = async (chatId: string, message: string): Promise<Result<Option<string>, Error>> => {
-    const userChat = GetChat(model.chats, chatId);
-    let chat: Chat;
-    if (userChat.isNone()) {
-        chat = StartNewChat(chatId);
-    } else {
-        chat = userChat.unwrap();
-    }
+    const chat = GetChat(chatId);
     try {
         const result = (await chat.sendMessage({ message: message })).text;
         const response = result ? Some(result) : None;
@@ -46,88 +40,12 @@ export const AskGemini = async (chatId: string, message: string): Promise<Result
     }
 };
 
-export const AskGeminiStream = async (chatId: string, message: string): Promise<Result<AsyncGenerator<GenerateContentResponse>, Error>>=> {
-    console.warn("Entering AskGeminiStream function");
-    const userChat = GetChat(model.chats, chatId);
-    let chat: Chat;
-    if (userChat.isNone()) {
-        chat = StartNewChat(chatId);
-    } else {
-        chat = userChat.unwrap();
-    }
+export const AskGeminiStream = async (chatId: string, message: string): Promise<Result<AsyncGenerator<GenerateContentResponse>, Error>> => {
+    const chat = GetChat(chatId);
     try {
-        const stream =  await chat.sendMessageStream({ message: message });
-        return stream? Ok(stream) : Err(new Error("Stream is undefined"));
-    } catch (error) {
-        // return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
-        console.warn("Error in AskGeminiStream function");
-        console.log(error);
-        return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
-    }
-};
-
-const GetChat = (chats: Map<string, Chat>, chatId: string): Option<Chat> => {
-    return chats.has(chatId) ? Some(chats.get(chatId)!) : None;
-}
-
-
-// --------------------------------------------------------------------------------------------------------------------
-/* 
-// TODO: the model should be an input parameter
-// --- Function to make a simple API call ---
-export const runBasicQuery = async (promptText: string): Promise<Result<Option<string>, Error>> => {
-    try {
-        // Generating result (REMEMBER: Stateless)
-        const result = await model.generateContent({
-            model: 'gemini-2.0-flash-001',
-            contents: promptText,
-        });
-        const text = result.text;
-        const response = text ? Some(text) : None;
-        return Ok(response);
+        const stream = await chat.sendMessageStream({ message: message });
+        return stream ? Ok(stream) : Err(new Error("Stream is undefined"));
     } catch (error) {
         return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
     }
-}
-
-// Function to read from terminal and send to Gemini
-export const startTerminalChat = () => {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    console.log("=== Gemini Terminal Chat ===");
-    console.log("Type your questions or 'exit' to quit");
-    console.log("===========================");
-
-    const askQuestion = () => {
-        rl.question('You: ', async (input) => {
-            if (input.toLowerCase() === 'exit') {
-                console.log('Goodbye!');
-                rl.close();
-                return;
-            }
-
-            try {
-                console.log('Gemini: ');
-                const response = await runBasicQuery(input);
-                if (response.isOk()) {
-                    const inner = response.unwrap();
-                    const output = inner.isSome() ? inner.unwrap() : "No response received.";
-                    console.log(output);
-                } else {
-                    console.log(`Error: ${response.unwrapErr().message}`);
-                }
-            } catch (error) {
-                console.log(`Error getting response: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            }
-
-            // Continue asking questions
-            askQuestion();
-        });
-    };
-
-    askQuestion();
 };
- */
