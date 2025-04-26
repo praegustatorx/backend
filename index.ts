@@ -23,10 +23,14 @@ const startServer = async () => {
     });
 }
 
-
-if (process.argv.includes('--chat')) {
+const args = process.argv;
+if (args.includes('--chat')) {
     console.warn(`${"\x1b[33m"}Running only the chat terminal.${"\x1b[0m"}`);
     startTerminalChat(false);
-} else {
+} else if (args.includes('--chat-stream')) {
+    console.warn(`${"\x1b[33m"}Running only the chat terminal with stream responses.${"\x1b[0m"}`);
+    startTerminalChat(true);
+}
+else {
     startServer();
 }
