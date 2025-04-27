@@ -113,12 +113,17 @@ export const toPantry = (doc: PantryDocument): Pantry => {
             : None;
 
         // Create nutrition
+        // Cheking that calories has at least 2 elements
+        const calories = ingredient.nutrition.calories.length > 1
+            ? ingredient.nutrition.calories[1].amount
+            : 0;
+            
         const nutrition = createNutritions(
             {
                 amount: ingredient.nutrition.portion.amount,
                 unit: ingredient.nutrition.portion.unit as NutrientUnit
             },
-            ingredient.nutrition.calories[1].amount,
+            calories,
             ingredient.nutrition.protein.amount,
             ingredient.nutrition.fat.amount,
             ingredient.nutrition.carbohydrates.amount
