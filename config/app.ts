@@ -4,7 +4,8 @@ import cors from 'cors'
 
 import authRoter from '../routes/authRoute';
 import fileUploadRouter from '../routes/fileUploadRoute';
-import chatRoute from '../routes/chatRoute';
+import preferencesRouter from '../routes/preferencesRoute';
+import chatRouter from '../routes/chatRoute';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ app.use(express.json());
 
 app.use('/auth', authRoter);
 app.use('/file', fileUploadRouter);
-app.use('/chat', chatRoute);
-console.log("Chat route loaded successfully");
+app.use('/chat', chatRouter);
+app.use('/preferences', preferencesRouter)
 
 export default app;

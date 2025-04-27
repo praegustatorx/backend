@@ -1,5 +1,9 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
+import { Result, Err, Ok, Option, None } from 'ts-results-es';
+import { Preferences } from './preferences';
+import { createPantry, Pantry } from './pantry';
+import { Cookbook, createCookbook } from './cookbook';
 
 const userSchema = new Schema({
   name: { type: String, required: true },
@@ -17,3 +21,69 @@ userSchema.pre("save", async function (next) {
 const User = model("userModel", userSchema);
 
 export default User;
+
+// TODO: Add abstractions for fields if needed
+type User = {
+    name: string;
+    username: string;
+    passwordHash: string;
+    preferences: Option<Preferences>;
+    pantry: Pantry
+    cookbook: Cookbook
+};
+
+export const validateUser = (
+    name: string,
+    username: string,
+    password: string
+): Result<void, string[]> => {
+    const errors: string[] = [];
+
+    if (!name) {
+        errors.push('Name is required.');
+    }
+
+    if (!username) {
+        errors.push('Username is required.');
+    }
+
+    if (!password) {
+        errors.push('Password hash is required.');
+    }
+
+    if (username.length < 3) {
+        errors.push('Username must be at least 3 characters long.');
+    }
+
+    if (password.length < 60) {
+        errors.push(
+            'Password hash is too short. It should be a secure hash (at least 60 characters).'
+        );
+    }
+
+    if (errors.length > 0) {
+        return Err(errors);
+    }
+
+    return Ok(undefined);
+};
+
+export const createUser = (
+    name: string,
+    username: string,
+    password: string,
+    preferences: Option<Preferences> = None,
+    pantry: Pantry = createPantry(),
+    cookbook: Cookbook = createCookbook(),
+): Result<User, string[]> => {
+    return validateUser(name, username, password).map(() => {
+        const passwordHash = hashPassword(password);
+        return { name, username, passwordHash, preferences, pantry, cookbook };
+    });
+};
+
+// TODO: Add better hashing and salting for passwords with an external library
+const hashPassword = (password: string): string => {
+    // In a real application, use bcrypt or similar
+    return `hashed_${password}`;
+};
