@@ -39,8 +39,18 @@ router.get('/:userId/expired', async (req: Request, res: Response): Promise<void
     try {
         const { userId } = req.params;
         const { date } = req.query;
-        const expirationDate = date ? new Date(date.toString()) : new Date();
+        let expirationDate: Date;
 
+        if (date) {
+            const parsedDate = Date.parse(date.toString());
+            if (isNaN(parsedDate)) {
+                res.status(400).json({ message: 'Invalid date format' });
+                return;
+            }
+            expirationDate = new Date(parsedDate);
+        } else {
+            expirationDate = new Date();
+        }
         const pantryDoc = await PantryModel.findOne({ userId });
         
         if (!pantryDoc) {
