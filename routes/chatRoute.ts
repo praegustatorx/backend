@@ -9,6 +9,7 @@ router.post("/", async (req: Request, res: Response) => {
   const response = await AskGemini(id, message);
   if (response.isErr()) {
     res.status(500).json({ error: response.unwrapErr().message });
+    return;
   }
   const inner = response.unwrap();
   const result = inner.isSome() ? inner.unwrap() : "No response received.";
