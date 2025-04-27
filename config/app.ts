@@ -5,6 +5,7 @@ import cors from 'cors'
 import authRoter from '../routes/authRoute';
 import fileUploadRouter from '../routes/fileUploadRoute';
 import preferencesRouter from '../routes/preferencesRoute';
+import pantryRouter from '../routes/pantryRoute';
 
 dotenv.config();
 
@@ -16,5 +17,6 @@ app.use(express.json());
 app.use('/auth', authRoter);
 app.use('/file', fileUploadRouter);
 app.use('/preferences', preferencesRouter)
+app.use('/pantry', pantryRouter)
 
 export default app;
