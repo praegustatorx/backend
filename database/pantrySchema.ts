@@ -30,10 +30,7 @@ const PantryIngredientSchema = new Schema({
     id: { type: String, required: true },
     brand: { type: String, required: false },
     genericId: { type: String, required: true },
-    quantity: {
-        quantity: { type: Number, required: false },
-        unit: { type: String, required: false }
-    },
+    quantity: MeasurementSchema,
     nutrition: NutritionsSchema,
     expiration_date: { type: Date, required: false }
 });
