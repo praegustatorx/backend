@@ -16,7 +16,9 @@ export type RecipeDAO = {
     updateDescription: (id: string, description: string) => Promise<Result<Recipe, Error>>;
 };
 
-export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel): RecipeDAO => {
+export const createRecipeDAO = (): RecipeDAO => {
+    const recipeModel = RecipeModel;
+
     const createRecipe = async (recipe: BaseRecipe): Promise<Result<Types.ObjectId, Error>> => {
         try {
             const recipeData = fromRecipe(recipe);
@@ -80,19 +82,16 @@ export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel
 
     const addTag = async (id: string, tag: Tag): Promise<Result<Recipe, Error>> => {
         try {
-            const recipe = await recipeModel.findById(id);
-            if (!recipe) return Err(new Error("Recipe not found"));
-
             const tagData = fromTag(tag);
+            const updatedRecipe = await recipeModel.findByIdAndUpdate(
+                id,
+                { $addToSet: { tags: tagData } },
+                { new: true }
+            );
 
-            // Check if tag already exists
-            const tagExists = recipe.tags.some(t => t.name === tag.name);
-            if (!tagExists) {
-                recipe.tags.push(tagData);
-                await recipe.save();
-            }
+            if (!updatedRecipe) return Err(new Error("Recipe not found"));
 
-            return Ok(toRecipe(recipe));
+            return Ok(toRecipe(updatedRecipe));
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
@@ -100,13 +99,15 @@ export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel
 
     const removeTag = async (id: string, tagName: string): Promise<Result<Recipe, Error>> => {
         try {
-            const recipe = await recipeModel.findById(id);
-            if (!recipe) return Err(new Error("Recipe not found"));
+            const updatedRecipe = await recipeModel.findByIdAndUpdate(
+                id,
+                { $pull: { tags: { name: tagName } } },
+                { new: true }
+            );
 
-            recipe.tags = recipe.tags.filter(tag => tag.name !== tagName);
-            await recipe.save();
+            if (!updatedRecipe) return Err(new Error("Recipe not found"));
 
-            return Ok(toRecipe(recipe));
+            return Ok(toRecipe(updatedRecipe));
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
@@ -138,5 +139,4 @@ export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel
     };
 };
 
-// Export default instance for direct use
 export default createRecipeDAO();
