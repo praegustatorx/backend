@@ -17,6 +17,22 @@ export type BaseRecipe = {
     tags: Set<Tag>;
 }
 
+export function createBaseRecipe(
+    name: string,
+    description: string | undefined,
+    ingredients: RecipeIngredient[],
+    instructions: string[],
+    tags: Tag[] | Set<Tag>
+): BaseRecipe {
+    return {
+        name: name,
+        description: description ? Some(description) : None,
+        ingredients: ingredients,
+        instructions: instructions,
+        tags: tags instanceof Set ? tags : new Set(tags),
+    };
+}
+
 // ----- Tags ----- 
 // TODO: Add tag::id field if needed
 export type Tag = {

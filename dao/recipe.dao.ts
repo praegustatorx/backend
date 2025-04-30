@@ -1,14 +1,15 @@
 import { Option, Some, None, Result, Ok, Err } from 'ts-results-es';
-import RecipeModel, { RecipeDocument, toRecipe, fromRecipe, fromTag, toTag } from '../database/recipeSchema';
-import { Recipe, Tag } from '../models/recipe';
+import RecipeModel, { RecipeDocument, toRecipe, fromTag, toTag, fromRecipe } from '../database/recipeSchema';
 import { Model, Types } from 'mongoose';
+import { BaseRecipe, Recipe, Tag } from '../models/recipe';
 
 export type RecipeDAO = {
-    createRecipe: (recipe: Recipe) => Promise<Result<Types.ObjectId, Error>>;
+    createRecipe: (recipe: BaseRecipe) => Promise<Result<Types.ObjectId, Error>>;
     // TODO create an id type, which gets validated on receive
     getRecipeById: (id: string) => Promise<Result<Recipe, Error>>;
     getRecipesByIds: (ids: string[]) => Promise<Result<Recipe[], Error>>;
-    updateRecipe: (id: string, recipe: Recipe) => Promise<Result<Recipe, Error>>;
+    // TODO: Use a partial type for recipe to allow partial updates directly from endpoint
+    updateRecipe: (recipe: Recipe) => Promise<Result<Recipe, Error>>;
     deleteRecipe: (id: string) => Promise<Result<boolean, Error>>;
     addTag: (id: string, tag: Tag) => Promise<Result<Recipe, Error>>;
     removeTag: (id: string, tagName: string) => Promise<Result<Recipe, Error>>;
@@ -16,7 +17,7 @@ export type RecipeDAO = {
 };
 
 export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel): RecipeDAO => {
-    const createRecipe = async (recipe: Recipe): Promise<Result<Types.ObjectId, Error>> => {
+    const createRecipe = async (recipe: BaseRecipe): Promise<Result<Types.ObjectId, Error>> => {
         try {
             const recipeData = fromRecipe(recipe);
             const createdRecipe = await recipeModel.create(recipeData);
@@ -52,8 +53,9 @@ export const createRecipeDAO = (recipeModel: Model<RecipeDocument> = RecipeModel
         }
     };
 
-    const updateRecipe = async (id: string, recipe: Recipe): Promise<Result<Recipe, Error>> => {
+    const updateRecipe = async (recipe: Recipe): Promise<Result<Recipe, Error>> => {
         try {
+            const id = recipe.id;
             const recipeData = fromRecipe(recipe);
             const updatedRecipe = await recipeModel.findByIdAndUpdate(
                 id,

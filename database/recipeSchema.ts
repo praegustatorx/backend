@@ -1,5 +1,5 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { Recipe, Tag } from '../models/recipe';
+import { Tag, BaseRecipe, Recipe, createBaseRecipe } from '../models/recipe';
 import { None, Some } from 'ts-results-es';
 import { RecipeIngredient, Unit } from '../models/ingredient';
 
@@ -72,11 +72,11 @@ export const toRecipe = (doc: RecipeDocument): Recipe => {
         genericId: ingredient.genericId,
         quantity: ingredient.quantity ? Some({
             quantity: ingredient.quantity.quantity,
-            unit: ingredient.quantity.unit as Unit as Unit
+            unit: ingredient.quantity.unit as Unit
         }) : None
     }));
 
-    // Convert tags
+    // Convert tags using the existing toTag function
     const tags = new Set<Tag>();
     doc.tags.forEach(tag => {
         tags.add({
@@ -85,30 +85,44 @@ export const toRecipe = (doc: RecipeDocument): Recipe => {
         });
     });
 
-    return {
-        name: doc.name,
-        description: doc.description ? Some(doc.description) : None,
+    // Create base recipe
+    const baseRecipe = createBaseRecipe(
+        doc.name,
+        doc.description,
         ingredients,
-        instructions: doc.instructions,
+        doc.instructions,
+        tags
+    );
+
+    // Return full recipe with id
+    return {
+        id: doc._id.toString(), // Convert ObjectId to string
+        ...baseRecipe
+    };
+};
+
+// Convert domain Recipe model to database format
+export const fromRecipe = (recipe: Recipe | BaseRecipe): Partial<RecipeDocument> => {
+    // Convert ingredients
+    const ingredients = recipe.ingredients.map(ingredient => ({
+        genericId: ingredient.genericId,
+        quantity: ingredient.quantity.isSome() ? {
+            quantity: ingredient.quantity.unwrap().quantity,
+            unit: ingredient.quantity.unwrap().unit
+        } : undefined
+    }));
+
+    // Convert tags using the existing fromTag function
+    const tags = Array.from(recipe.tags).map(tag => fromTag(tag));
+
+    // Return partial document (without _id as MongoDB will handle that)
+    return {
+        name: recipe.name,
+        description: recipe.description.isSome() ? recipe.description.unwrap() : undefined,
+        ingredients,
+        instructions: recipe.instructions,
         tags
     };
 };
 
-export const fromRecipe = (recipe: Recipe): Partial<RecipeDocument> => {
-    return {
-        name: recipe.name,
-        description: recipe.description.isSome() ? recipe.description.unwrap() : undefined,
-        ingredients: recipe.ingredients.map(ingredient => ({
-            genericId: ingredient.genericId,
-            quantity: ingredient.quantity.isSome() ? {
-                quantity: ingredient.quantity.unwrap().quantity,
-                unit: ingredient.quantity.unwrap().unit
-            } : undefined
-        })),
-        instructions: recipe.instructions,
-        tags: Array.from(recipe.tags).map(tag => ({
-            name: tag.name,
-            description: tag.description.isSome() ? tag.description.unwrap() : undefined
-        }))
-    };
-};
+
