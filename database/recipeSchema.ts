@@ -9,6 +9,21 @@ const TagSchema = new Schema({
     description: { type: String, required: false }
 }, { _id: false });
 
+// Tag conversion utilities
+export const fromTag = (tag: Tag): { name: string; description?: string } => {
+    return {
+        name: tag.name,
+        description: tag.description.isSome() ? tag.description.unwrap() : undefined
+    };
+};
+
+export const toTag = (schemaTag: { name: string; description?: string }): Tag => {
+    return {
+        name: schemaTag.name,
+        description: schemaTag.description ? Some(schemaTag.description) : None
+    };
+};
+
 // Schema for RecipeIngredient
 const RecipeIngredientSchema = new Schema({
     genericId: { type: String, required: true },
@@ -20,6 +35,7 @@ const RecipeIngredientSchema = new Schema({
 
 // Interface for Recipe document
 export interface RecipeDocument extends Document {
+    _id: Types.ObjectId; // Explicitly define the _id field
     name: string;
     description?: string;
     ingredients: {
