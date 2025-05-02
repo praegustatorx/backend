@@ -5,13 +5,13 @@ import { Recipe } from '../models/recipe';
 
 // Interface for Cookbook document
 export interface CookbookDocument extends Document {
-    userId: string;
+    _id: string;
     recipes: Types.ObjectId[];
 }
 
 // Cookbook Schema
 const CookbookSchema = new Schema({
-    userId: { type: String, required: true, unique: true },
+    _id: { type: String, required: true, unique: true },
     recipes: [{ type: Schema.Types.ObjectId, ref: 'Recipe' }]
 });
 
