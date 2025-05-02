@@ -2,15 +2,18 @@ import { Option, Some, None, Result, Ok, Err } from 'ts-results-es';
 import CookbookModel, { CookbookDocument } from '../database/cookbookSchema';
 import RecipeModel from '../database/recipeSchema';
 import { Cookbook, createCookbook as domainCookbookCreate } from '../models/cookbook';
-import { Recipe } from '../models/recipe';
+import { BaseRecipe, Recipe } from '../models/recipe';
 import recipeDAO from './recipe.dao';
+import recipeDao from './recipe.dao';
 
 
 // TODO:? Just generated
 export type CookbookDAO = {
     createCookbook: (userId: string) => Promise<Result<void, Error>>;
     getCookbook: (userId: string) => Promise<Result<Cookbook, Error>>;
-    addRecipe: (userId: string, recipeId: string) => Promise<Result<void, Error>>;
+    createRecipe: (userId: string, recipe: BaseRecipe) => Promise<Result<void, Error>>;
+    // TODO: Add recipe to cookbook with recipeId if recipes can be shared between cookbooks
+    // addRecipe: (userId: string, recipeId: string) => Promise<Result<void, Error>>;
     removeRecipe: (userId: string, recipeId: string) => Promise<Result<void, Error>>;
     getRecipe: (userId: string, recipeId: string) => Promise<Result<Recipe, Error>>;
     searchRecipesByTag: (userId: string, tagName: string) => Promise<Result<Recipe[], Error>>;
@@ -18,6 +21,7 @@ export type CookbookDAO = {
 
 export const createCookbookDAO = (): CookbookDAO => {
     const cookbookModel = CookbookModel;
+    const recipeModel = RecipeModel;
 
     const createCookbook = async (userId: string): Promise<Result<void, Error>> => {
         try {
@@ -52,28 +56,32 @@ export const createCookbookDAO = (): CookbookDAO => {
             const recipeIds = cookbookDoc.recipes.map(id => id.toString());
             const recipesResult = await recipeDAO.getRecipesByIds(recipeIds);
 
-            return recipesResult.map(recipes => {return domainCookbookCreate(userId, recipes)});
+            return recipesResult.map(recipes => { return domainCookbookCreate(userId, recipes) });
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
     };
 
-    const addRecipe = async (userId: string, recipeId: string): Promise<Result<void, Error>> => {
+    const createRecipe = async (userId: string, recipe: BaseRecipe): Promise<Result<void, Error>> => {
         try {
-            // Verify the recipe exists
-            const recipeExists = await RecipeModel.exists({ _id: recipeId });
-            if (!recipeExists) {
-                return Err(new Error("Recipe not found"));
+
+            const addedToCookbook = (await recipeDao.createRecipe(recipe)).map(async recipeId => {
+                // Add the new recipe ID to the user's cookbook
+                let b = cookbookModel.findByIdAndUpdate(
+                    userId,
+                    { $addToSet: { recipes: recipeId } },
+                    { new: true }
+                ).then((result) => { return result !== null; });
+                return b;
+            });
+
+            if (addedToCookbook.isOk()) {
+                return (await addedToCookbook.unwrap())
+                    ? Ok(undefined)
+                    : Err(new Error("Cookbook not found"));
+            } else {
+                return Err(new Error("Recipe creation failed"));
             }
-
-            // Find the cookbook and add the recipe reference
-            const result = await cookbookModel.findByIdAndUpdate(
-                userId,
-                { $addToSet: { recipes: recipeId } },
-                { new: true, upsert: true }
-            );
-
-            return Ok(undefined);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
@@ -138,7 +146,7 @@ export const createCookbookDAO = (): CookbookDAO => {
     return {
         createCookbook,
         getCookbook,
-        addRecipe,
+        createRecipe,
         removeRecipe,
         getRecipe,
         searchRecipesByTag
