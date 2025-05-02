@@ -1,11 +1,10 @@
-import { Option, Some, None, Result, Ok, Err } from 'ts-results-es';
-import CookbookModel, { CookbookDocument } from '../database/cookbookSchema';
+import recipeDAO from './recipe.dao';
+
+import { Result, Ok, Err } from 'ts-results-es';
+import CookbookModel from '../database/cookbookSchema';
 import RecipeModel from '../database/recipeSchema';
 import { Cookbook, createCookbook as domainCookbookCreate } from '../models/cookbook';
 import { BaseRecipe, Recipe } from '../models/recipe';
-import recipeDAO from './recipe.dao';
-import recipeDao from './recipe.dao';
-
 
 // TODO:? Just generated
 export type CookbookDAO = {
@@ -25,23 +24,20 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const createCookbook = async (userId: string): Promise<Result<void, Error>> => {
         try {
-            cookbookModel.exists({ _id: userId }).then(async (exists) => {
-                if (exists) {
-                    return Err(new Error("A cookbook for this user already exists")); // Cookbook already exists
-                }
+            const exists = await cookbookModel.exists({ _id: userId });
+            if (exists) {
+                return Err(new Error("A cookbook for this user already exists"));
+            }
 
-                // Create new cookbook
-                const newCookbook = await cookbookModel.create({
-                    _id: userId,
-                    recipes: []
-                });
-
-                // Cookbook created successfully
-            })
+            // Create new cookbook
+            await cookbookModel.create({
+                _id: userId,
+                recipes: []
+            });
+            
             return Ok(undefined);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
-
         }
     };
 
@@ -64,40 +60,45 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const createRecipe = async (userId: string, recipe: BaseRecipe): Promise<Result<void, Error>> => {
         try {
-
-            const addedToCookbook = (await recipeDao.createRecipe(recipe)).map(async recipeId => {
-                // Add the new recipe ID to the user's cookbook
-                let b = cookbookModel.findByIdAndUpdate(
-                    userId,
-                    { $addToSet: { recipes: recipeId } },
-                    { new: true }
-                ).then((result) => { return result !== null; });
-                return b;
-            });
-
-            if (addedToCookbook.isOk()) {
-                return (await addedToCookbook.unwrap())
-                    ? Ok(undefined)
-                    : Err(new Error("Cookbook not found"));
-            } else {
-                return Err(new Error("Recipe creation failed"));
+            const recipeResult = await recipeDAO.createRecipe(recipe);
+            
+            if (recipeResult.isErr()) {
+                return Err(recipeResult.error);
             }
+            
+            const recipeId = recipeResult.unwrap();
+            const updatedCookbook = await cookbookModel.findByIdAndUpdate(
+                userId,
+                { $addToSet: { recipes: recipeId } },
+                { new: true }
+            );
+            
+            return updatedCookbook 
+                ? Ok(undefined) 
+                : Err(new Error("Cookbook not found"));
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
     };
 
     const removeRecipe = async (userId: string, recipeId: string): Promise<Result<void, Error>> => {
+        const session = await cookbookModel.db.startSession();
+        session.startTransaction();
+        
         try {
             // First check if the cookbook exists and if it contains the recipe
-            const cookbook = await cookbookModel.findById(userId);
+            const cookbook = await cookbookModel.findById(userId).session(session);
             if (!cookbook) {
+                await session.abortTransaction();
+                session.endSession();
                 return Err(new Error("Cookbook not found"));
             }
 
             // Check if the recipe exists in the cookbook
             const hasRecipe = cookbook.recipes.some(id => id.toString() === recipeId);
             if (!hasRecipe) {
+                await session.abortTransaction();
+                session.endSession();
                 return Err(new Error("Recipe not found in cookbook"));
             }
 
@@ -105,16 +106,22 @@ export const createCookbookDAO = (): CookbookDAO => {
             await cookbookModel.findByIdAndUpdate(
                 userId,
                 { $pull: { recipes: recipeId } }
-            );
+            ).session(session);
 
             // Delete the recipe from the recipe collection
-            const recipeResult = await recipeModel.findByIdAndDelete(recipeId);
+            const recipeResult = await recipeModel.findByIdAndDelete(recipeId).session(session);
             if (!recipeResult) {
+                await session.abortTransaction();
+                session.endSession();
                 return Err(new Error("Recipe does not exist in database"));
             }
 
+            await session.commitTransaction();
+            session.endSession();
             return Ok(undefined);
         } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
     };
