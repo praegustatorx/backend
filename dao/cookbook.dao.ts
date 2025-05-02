@@ -89,14 +89,28 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const removeRecipe = async (userId: string, recipeId: string): Promise<Result<void, Error>> => {
         try {
-            const result = await cookbookModel.findByIdAndUpdate(
+            // First check if the cookbook exists and if it contains the recipe
+            const cookbook = await cookbookModel.findById(userId);
+            if (!cookbook) {
+                return Err(new Error("Cookbook not found"));
+            }
+
+            // Check if the recipe exists in the cookbook
+            const hasRecipe = cookbook.recipes.some(id => id.toString() === recipeId);
+            if (!hasRecipe) {
+                return Err(new Error("Recipe not found in cookbook"));
+            }
+
+            // Remove the recipe from the cookbook
+            await cookbookModel.findByIdAndUpdate(
                 userId,
-                { $pull: { recipes: recipeId } },
-                { new: true }
+                { $pull: { recipes: recipeId } }
             );
 
-            if (!result) {
-                return Err(new Error("Cookbook not found"));
+            // Delete the recipe from the recipe collection
+            const recipeResult = await recipeModel.findByIdAndDelete(recipeId);
+            if (!recipeResult) {
+                return Err(new Error("Recipe does not exist in database"));
             }
 
             return Ok(undefined);
