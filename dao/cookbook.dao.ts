@@ -140,17 +140,11 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const searchRecipesByTag = async (userId: string, tagName: string): Promise<Result<Recipe[], Error>> => {
         try {
-            const cookbookResult = await getCookbook(userId);
-            if (cookbookResult.isErr()) {
-                return Err(cookbookResult.unwrapErr());
-            }
-
-            const cookbook = cookbookResult.unwrap();
-            const recipes = cookbook.recipes.filter(recipe =>
-                Array.from(recipe.tags).some(tag => tag.name.toLowerCase() === tagName.toLowerCase())
-            );
-
-            return Ok(recipes);
+            return (await getCookbook(userId)).map(cookbook => {
+                return cookbook.recipes.filter(recipe =>
+                    Array.from(recipe.tags).some(tag => tag.name.toLowerCase() === tagName.toLowerCase())
+                );
+            });
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
