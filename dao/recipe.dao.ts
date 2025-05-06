@@ -1,10 +1,10 @@
 import { Option, Some, None, Result, Ok, Err } from 'ts-results-es';
 import RecipeModel, { RecipeDocument, toRecipe, fromTag, toTag, fromRecipe } from '../database/recipeSchema';
-import { Model, Types } from 'mongoose';
+import { ClientSession, Model, Types } from 'mongoose';
 import { BaseRecipe, Recipe, Tag } from '../models/recipe';
 
 export type RecipeDAO = {
-    createRecipe: (recipe: BaseRecipe) => Promise<Result<Types.ObjectId, Error>>;
+    createRecipe: (recipe: BaseRecipe, session?: ClientSession) => Promise<Result<Recipe, Error>>;
     // TODO create an id type, which gets validated on receive
     getRecipeById: (id: string) => Promise<Result<Recipe, Error>>;
     getRecipesByIds: (ids: string[]) => Promise<Result<Recipe[], Error>>;
@@ -19,11 +19,21 @@ export type RecipeDAO = {
 export const createRecipeDAO = (): RecipeDAO => {
     const recipeModel = RecipeModel;
 
-    const createRecipe = async (recipe: BaseRecipe): Promise<Result<Types.ObjectId, Error>> => {
+    const createRecipe = async (recipe: BaseRecipe, session?: ClientSession): Promise<Result<Recipe, Error>> => {
         try {
             const recipeData = fromRecipe(recipe);
-            const createdRecipe = await recipeModel.create(recipeData);
-            return Ok(createdRecipe._id);
+            let createdRecipe;
+
+            if (session) {
+                // Use the session for transaction if provided
+                const docs = await recipeModel.create([recipeData], { session });
+                createdRecipe = docs[0];
+            } else {
+                // Execute without a session (standard operation)
+                createdRecipe = await recipeModel.create(recipeData);
+            }
+
+            return Ok(toRecipe(createdRecipe));
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
