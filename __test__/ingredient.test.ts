@@ -38,18 +38,18 @@ describe('Ingredient Module', () => {
     describe('Measurement', () => {
         it('should create a measurement', () => {
             const measurement = CreateMeasurement(100, Unit.GRAM);
-            expect(measurement.quantity).toBe(100);
+            expect(measurement.amount).toBe(100);
             expect(measurement.unit).toBe('gram');
         });
 
         it('should fail with negative quantity', () => {
             const measurement = CreateMeasurement(-100, Unit.GRAM);
-            expect(measurement.quantity).toBeLessThan(0);
+            expect(measurement.amount).toBeLessThan(0);
         });
 
         it('should fail with zero quantity', () => {
             const measurement = CreateMeasurement(0, Unit.GRAM);
-            expect(measurement.quantity).toBe(0);
+            expect(measurement.amount).toBe(0);
         });
     });
 
@@ -113,7 +113,7 @@ describe('Ingredient Module', () => {
                 mockNutrition,
                 None
             );
-            expect(ingredient.quantity.unwrap().quantity).toBeLessThan(0);
+            expect(ingredient.quantity.unwrap().amount).toBeLessThan(0);
         });
     });
 
@@ -245,7 +245,7 @@ describe('Ingredient Module', () => {
         it('should fail with negative quantity', () => {
             const measurement = CreateMeasurement(-25, Unit.GRAM);
             const ingredient = CreateRecipeIngredient('789', Some(measurement));
-            expect(ingredient.quantity.unwrap().quantity).toBeLessThan(0);
+            expect(ingredient.quantity.unwrap().amount).toBeLessThan(0);
         });
     });
 });

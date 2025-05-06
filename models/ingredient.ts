@@ -20,13 +20,13 @@ export const CreateGenericIngredient = (id: string, name: string): GenericIngred
  * Representing the quantity of an ingredient.
 */
 type Measurement = {
-    quantity: number;
+    amount: number;
     unit: Unit;
 }
 
-export const CreateMeasurement = (quantity: number, unit: Unit): Measurement => {
+export const CreateMeasurement = (amount: number, unit: Unit): Measurement => {
     return {
-        quantity,
+        amount,
         unit
     };
 }

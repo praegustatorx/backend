@@ -15,7 +15,7 @@ export interface PantryDocument extends Document {
         brand?: string;
         genericId: string;
         quantity?: {
-            quantity: number;
+            amount: number;
             unit: string;
         };
         nutrition: {
@@ -64,18 +64,18 @@ export default PantryModel;
 export const toPantry = (doc: PantryDocument): Pantry => {
     const pantryIngredients: PantryIngredient[] = doc.ingredients.map(ingredient => {
         // Convert quantity if exists
-        const quantityOption = ingredient.quantity 
+        const quantityOption = ingredient.quantity
             ? Some(CreateMeasurement(
-                ingredient.quantity.quantity,
+                ingredient.quantity.amount,
                 ingredient.quantity.unit as Unit
-              ))
+            ))
             : None;
-        
+
         // Convert expiration date if exists
         const expirationOption = ingredient.expiration_date
             ? Some(ingredient.expiration_date as ExpDate)
             : None;
-        
+
         // Convert brand if exists
         const brandOption = ingredient.brand
             ? Some(ingredient.brand)
@@ -86,7 +86,7 @@ export const toPantry = (doc: PantryDocument): Pantry => {
         const calories = ingredient.nutrition.calories.length > 1
             ? ingredient.nutrition.calories[1].amount
             : 0;
-            
+
         const nutrition = createNutritions(
             {
                 amount: ingredient.nutrition.portion.amount,
@@ -118,7 +118,7 @@ export const fromPantry = (pantry: Pantry, userId: string): Partial<PantryDocume
             brand: ingredient.brand.isSome() ? ingredient.brand.unwrap() : undefined,
             genericId: ingredient.genericId,
             quantity: ingredient.quantity.isSome() ? {
-                quantity: ingredient.quantity.unwrap().quantity,
+                amount: ingredient.quantity.unwrap().amount, // Changed from 'quantity' to 'amount'
                 unit: ingredient.quantity.unwrap().unit as string
             } : undefined,
             nutrition: {

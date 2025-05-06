@@ -41,7 +41,7 @@ export interface RecipeDocument extends Document {
     ingredients: {
         genericId: string;
         quantity?: {
-            quantity: number;
+            amount: number;
             unit: string;
         };
     }[];
@@ -54,6 +54,7 @@ export interface RecipeDocument extends Document {
 
 // Recipe Schema
 const RecipeSchema = new Schema({
+    
     name: { type: String, required: true },
     description: { type: String, required: false },
     ingredients: [RecipeIngredientSchema],
@@ -71,7 +72,7 @@ export const toRecipe = (doc: RecipeDocument): Recipe => {
     const ingredients: RecipeIngredient[] = doc.ingredients.map(ingredient => ({
         genericId: ingredient.genericId,
         quantity: ingredient.quantity ? Some({
-            quantity: ingredient.quantity.quantity,
+            amount: ingredient.quantity.amount,
             unit: ingredient.quantity.unit as Unit
         }) : None
     }));
@@ -107,7 +108,7 @@ export const fromRecipe = (recipe: Recipe | BaseRecipe): Partial<RecipeDocument>
     const ingredients = recipe.ingredients.map(ingredient => ({
         genericId: ingredient.genericId,
         quantity: ingredient.quantity.isSome() ? {
-            quantity: ingredient.quantity.unwrap().quantity,
+            amount: ingredient.quantity.unwrap().amount,
             unit: ingredient.quantity.unwrap().unit
         } : undefined
     }));
