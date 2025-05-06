@@ -47,8 +47,8 @@ router.post('/:userId/recipes', async (req: Request, res: Response) => {
         const recipeData: BaseRecipeDTO = req.body;
 
         const domain = fromDTO(recipeData);
-        console.log('Domain:', domain);
-        domain.ingredients.forEach((ingredient) => { console.warn(ingredient.quantity) });
+/*         console.log('Domain:', domain);
+        domain.ingredients.forEach((ingredient) => { console.warn(ingredient.quantity) }); */
 
         const result = await cookbookDAO.createRecipe(userId, domain);
 

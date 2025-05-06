@@ -48,7 +48,6 @@ export const createCookbookDAO = (): CookbookDAO => {
 
             await session.commitTransaction();
             session.endSession();
-            console.warn("Cookbook created:", created);
             return Ok(created);
         } catch (error) {
             await session.abortTransaction();
