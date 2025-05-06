@@ -35,7 +35,7 @@ const RecipeIngredientSchema = new Schema({
 
 // Interface for Recipe document
 export interface RecipeDocument extends Document {
-    _id: Types.ObjectId; // Explicitly define the _id field
+    userId: Types.ObjectId; // Explicitly define the _id field
     name: string;
     description?: string;
     ingredients: {
@@ -96,7 +96,7 @@ export const toRecipe = (doc: RecipeDocument): Recipe => {
 
     // Return full recipe with id
     return {
-        id: doc._id.toString(), // Convert ObjectId to string
+        id: doc.userId.toString(), // Convert ObjectId to string
         ...baseRecipe
     };
 };

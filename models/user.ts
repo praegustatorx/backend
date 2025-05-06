@@ -25,7 +25,7 @@ export default User;
 // TODO: Add abstractions for fields if needed
 type User = {
     name: string;
-    username: string;
+    email: string;
     passwordHash: string;
     preferences: Option<Preferences>;
     pantry: Pantry
@@ -34,7 +34,7 @@ type User = {
 
 export const validateUser = (
     name: string,
-    username: string,
+    email: string,
     password: string
 ): Result<void, string[]> => {
     const errors: string[] = [];
@@ -43,16 +43,18 @@ export const validateUser = (
         errors.push('Name is required.');
     }
 
-    if (!username) {
-        errors.push('Username is required.');
+    if (!email) {
+        errors.push('Email is required.');
+    }
+
+    // Email validation using a simple regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+        errors.push('Email is not valid.');
     }
 
     if (!password) {
         errors.push('Password hash is required.');
-    }
-
-    if (username.length < 3) {
-        errors.push('Username must be at least 3 characters long.');
     }
 
     if (password.length < 60) {
@@ -70,15 +72,13 @@ export const validateUser = (
 
 export const createUser = (
     name: string,
-    username: string,
+    email: string,
     password: string,
     preferences: Option<Preferences> = None,
-    pantry: Pantry = createPantry(),
-    cookbook: Cookbook = createCookbook(),
 ): Result<User, string[]> => {
-    return validateUser(name, username, password).map(() => {
+    return validateUser(name, email, password).map(() => {
         const passwordHash = hashPassword(password);
-        return { name, username, passwordHash, preferences, pantry, cookbook };
+        return { name, email, passwordHash, preferences, pantry: createPantry(), cookbook: createCookbook(email) };
     });
 };
 

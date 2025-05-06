@@ -55,7 +55,7 @@ export const createRecipeDAO = (): RecipeDAO => {
             if (ids && ids.length > 0) {
                 // Find only recipes with IDs in the provided array
                 const recipes = await recipeModel.find({
-                    _id: { $in: ids }
+                    userId: { $in: ids }
                 });
                 return Ok(recipes.map(recipe => toRecipe(recipe)));
             }

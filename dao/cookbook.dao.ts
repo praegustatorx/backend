@@ -27,9 +27,9 @@ export const createCookbookDAO = (): CookbookDAO => {
     const createCookbook = async (userId: string): Promise<Result<Cookbook, Error>> => {
         const session = await cookbookModel.db.startSession();
         session.startTransaction();
-        
+
         try {
-            const exists = await cookbookModel.exists({ _id: userId }).session(session);
+            const exists = await cookbookModel.exists({ userId: userId }).session(session);
             if (exists) {
                 await session.abortTransaction();
                 session.endSession();
@@ -38,14 +38,14 @@ export const createCookbookDAO = (): CookbookDAO => {
 
             // Create new cookbook directly in the database
             await cookbookModel.create([{
-                _id: userId,
+                userId: userId,
                 recipes: []
             }], { session });
 
             /* Converting from DB model to domain model creates additional overhead because of the recipe fetching.
               Since There are no recipes, then the domain cookbook is created separately   */
             const created = domainCookbookCreate(userId, []);
-            
+
             await session.commitTransaction();
             session.endSession();
             return Ok(created);
@@ -58,7 +58,8 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const getCookbook = async (userId: string): Promise<Result<Cookbook, Error>> => {
         try {
-            const cookbookDoc = await cookbookModel.findById(userId);
+            // Fix: findOne instead of findById with object query
+            const cookbookDoc = await cookbookModel.findOne({ userId: userId });
             if (!cookbookDoc) {
                 return Err(new Error("Cookbook not found"));
             }
@@ -76,33 +77,33 @@ export const createCookbookDAO = (): CookbookDAO => {
     const createRecipe = async (userId: string, recipe: BaseRecipe): Promise<Result<Recipe, Error>> => {
         const session = await cookbookModel.db.startSession();
         session.startTransaction();
-        
+
         try {
-            // First verify the cookbook exists
-            const cookbook = await cookbookModel.findById(userId).session(session);
+            // Fix: findOne instead of findById with object query
+            const cookbook = await cookbookModel.findOne({ userId: userId }).session(session);
             if (!cookbook) {
                 await session.abortTransaction();
                 session.endSession();
                 return Err(new Error("Cookbook not found"));
             }
-            
+
             // Create the recipe
             const creatingRecipe = await recipeDAO.createRecipe(recipe, session);
-            
+
             if (creatingRecipe.isErr()) {
                 await session.abortTransaction();
                 session.endSession();
                 return Err(creatingRecipe.error);
             }
-            
+
             const createdRecipe = creatingRecipe.unwrap();
-            
+
             // Update the cookbook with the new recipe
-            await cookbookModel.findByIdAndUpdate(
-                userId,
+            await cookbookModel.findOneAndUpdate(
+                { userId: userId },
                 { $addToSet: { recipes: createdRecipe.id } }
             ).session(session);
-            
+
             await session.commitTransaction();
             session.endSession();
             return Ok(createdRecipe);
@@ -118,8 +119,8 @@ export const createCookbookDAO = (): CookbookDAO => {
         session.startTransaction();
 
         try {
-            // First check if the cookbook exists and if it contains the recipe
-            const cookbook = await cookbookModel.findById(userId).session(session);
+            // Fix: findOne instead of findById
+            const cookbook = await cookbookModel.findOne({ userId: userId }).session(session);
             if (!cookbook) {
                 await session.abortTransaction();
                 session.endSession();
@@ -135,8 +136,8 @@ export const createCookbookDAO = (): CookbookDAO => {
             }
 
             // Remove the recipe from the cookbook
-            await cookbookModel.findByIdAndUpdate(
-                userId,
+            await cookbookModel.findOneAndUpdate(
+                { userId: userId },
                 { $pull: { recipes: recipeId } }
             ).session(session);
 
@@ -160,8 +161,8 @@ export const createCookbookDAO = (): CookbookDAO => {
 
     const getRecipe = async (userId: string, recipeId: string): Promise<Result<Recipe, Error>> => {
         try {
-            // First check if the cookbook exists and contains the recipe
-            const cookbookDoc = await cookbookModel.findById(userId);
+            // Fix: findOne instead of findById
+            const cookbookDoc = await cookbookModel.findOne({ userId: userId });
             if (!cookbookDoc) {
                 return Err(new Error("Cookbook not found"));
             }
