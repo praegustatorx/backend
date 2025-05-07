@@ -6,7 +6,6 @@ import {
 
 import {
     CreateExpDate,
-    CreateGenericIngredient,
     CreateMeasurement,
     CreatePantryIngredient,
     CreateRecipeIngredient,
@@ -17,24 +16,6 @@ import {
 } from '../models/ingredient';
 
 describe('Ingredient Module', () => {
-    describe('GenericIngredient', () => {
-        it('should create a generic ingredient', () => {
-            const ingredient = CreateGenericIngredient('123', 'Apple');
-            expect(ingredient.id).toBe('123');
-            expect(ingredient.name).toBe('Apple');
-        });
-
-        it('should fail with empty name', () => {
-            const ingredient = CreateGenericIngredient('123', '');
-            expect(ingredient.name).toBe('');
-        });
-
-        it('should fail with empty id', () => {
-            const ingredient = CreateGenericIngredient('', 'Apple');
-            expect(ingredient.id).toBe('');
-        });
-    });
-
     describe('Measurement', () => {
         it('should create a measurement', () => {
             const measurement = CreateMeasurement(100, Unit.GRAM);
@@ -68,7 +49,7 @@ describe('Ingredient Module', () => {
             const ingredient = CreatePantryIngredient(
                 '456',
                 Some('BrandX'),
-                '123',
+                'apple-123',
                 Some(measurement),
                 mockNutrition,
                 Some(expDate)
@@ -76,31 +57,31 @@ describe('Ingredient Module', () => {
 
             expect(ingredient.id).toBe('456');
             expect(ingredient.brand.unwrap()).toBe('BrandX');
-            expect(ingredient.genericId).toBe('123');
+            expect(ingredient.type).toBe('apple-123');
             expect(ingredient.quantity.unwrap()).toEqual(measurement);
             expect(ingredient.nutrition).toEqual(mockNutrition);
             expect(ingredient.expiration_date.unwrap()).toEqual(expDate);
         });
 
         it('should create a pantry ingredient with default values', () => {
-            const ingredient = CreatePantryIngredient('456', None, '123', None, mockNutrition, None);
+            const ingredient = CreatePantryIngredient('456', None, 'apple-123', None, mockNutrition, None);
 
             expect(ingredient.id).toBe('456');
             expect(ingredient.brand).toEqual(None);
-            expect(ingredient.genericId).toBe('123');
+            expect(ingredient.type).toBe('apple-123');
             expect(ingredient.quantity).toEqual(None);
             expect(ingredient.nutrition).toEqual(mockNutrition);
             expect(ingredient.expiration_date).toEqual(None);
         });
 
         it('should fail with invalid ID', () => {
-            const ingredient = CreatePantryIngredient('', None, '123', None, mockNutrition, None);
+            const ingredient = CreatePantryIngredient('', None, 'apple-123', None, mockNutrition, None);
             expect(ingredient.id).toBe('');
         });
 
-        it('should fail with invalid genericId', () => {
+        it('should fail with invalid type', () => {
             const ingredient = CreatePantryIngredient('456', None, '', None, mockNutrition, None);
-            expect(ingredient.genericId).toBe('');
+            expect(ingredient.type).toBe('');
         });
 
         it('should fail with negative quantity value', () => {
@@ -108,7 +89,7 @@ describe('Ingredient Module', () => {
             const ingredient = CreatePantryIngredient(
                 '456',
                 None,
-                '123',
+                'apple-123',
                 Some(measurement),
                 mockNutrition,
                 None
@@ -153,7 +134,7 @@ describe('Ingredient Module', () => {
             const ingredient: PantryIngredient = CreatePantryIngredient(
                 '1',
                 None,
-                '123',
+                'apple-123',
                 None,
                 mockNutrition,
                 Some(expDate)
@@ -162,20 +143,21 @@ describe('Ingredient Module', () => {
         });
 
         it('should return false if the ingredient is not expired', () => {
-            const expDate = CreateExpDate(2024, 11, 31); // Expires on Dec 31, 2024
+            const futureYear = new Date().getFullYear() + 5;
+            const expDate = CreateExpDate(futureYear, 11, 31); // Expires 5 years in the future
             const ingredient: PantryIngredient = CreatePantryIngredient(
                 '1',
                 None,
-                '123',
+                'apple-123',
                 None,
                 mockNutrition,
                 Some(expDate)
             );
-            expect(isIngredientExpired(ingredient)).toBe(true);
+            expect(isIngredientExpired(ingredient)).toBe(false);
         });
 
         it('should return false if the ingredient has no expiration date', () => {
-            const ingredient: PantryIngredient = CreatePantryIngredient('1', None, '123', None, mockNutrition, None);
+            const ingredient: PantryIngredient = CreatePantryIngredient('1', None, 'apple-123', None, mockNutrition, None);
             expect(isIngredientExpired(ingredient)).toBe(false);
         });
 
@@ -184,7 +166,7 @@ describe('Ingredient Module', () => {
             const ingredient: PantryIngredient = CreatePantryIngredient(
                 '1',
                 None,
-                '123',
+                'apple-123',
                 None,
                 mockNutrition,
                 Some(expDate)
@@ -199,7 +181,7 @@ describe('Ingredient Module', () => {
             const ingredient: PantryIngredient = CreatePantryIngredient(
                 '1',
                 None,
-                '123',
+                'apple-123',
                 None,
                 mockNutrition,
                 Some(invalidDate as ExpDate)
@@ -214,7 +196,7 @@ describe('Ingredient Module', () => {
             const ingredient: PantryIngredient = CreatePantryIngredient(
                 '1',
                 None,
-                '123',
+                'apple-123',
                 None,
                 mockNutrition,
                 Some(futureDate)
@@ -226,25 +208,25 @@ describe('Ingredient Module', () => {
     describe('RecipeIngredient', () => {
         it('should create a recipe ingredient with quantity', () => {
             const measurement = CreateMeasurement(50, Unit.GRAM);
-            const ingredient = CreateRecipeIngredient('789', Some(measurement));
-            expect(ingredient.genericId).toBe('789');
+            const ingredient = CreateRecipeIngredient('apple-789', Some(measurement));
+            expect(ingredient.type).toBe('apple-789');
             expect(ingredient.quantity.unwrap()).toEqual(measurement);
         });
 
         it('should create a recipe ingredient without quantity', () => {
-            const ingredient = CreateRecipeIngredient('789');
-            expect(ingredient.genericId).toBe('789');
+            const ingredient = CreateRecipeIngredient('apple-789');
+            expect(ingredient.type).toBe('apple-789');
             expect(ingredient.quantity).toEqual(None);
         });
 
-        it('should fail with empty genericId', () => {
+        it('should fail with empty type', () => {
             const ingredient = CreateRecipeIngredient('');
-            expect(ingredient.genericId).toBe('');
+            expect(ingredient.type).toBe('');
         });
 
         it('should fail with negative quantity', () => {
             const measurement = CreateMeasurement(-25, Unit.GRAM);
-            const ingredient = CreateRecipeIngredient('789', Some(measurement));
+            const ingredient = CreateRecipeIngredient('apple-789', Some(measurement));
             expect(ingredient.quantity.unwrap().amount).toBeLessThan(0);
         });
     });

@@ -151,8 +151,8 @@ describe('Preferences Model', () => {
 
   describe('Blacklist Functions', () => {
     let preferences: Preferences;
-    const ingredient1 = { id: '1', name: 'Ingredient 1' };
-    const ingredient2 = { id: '2', name: 'Ingredient 2' };
+    const ingredient1 = 'tomato-123';
+    const ingredient2 = 'onion-456';
 
     beforeEach(() => {
       preferences = createPreferences();
@@ -160,7 +160,7 @@ describe('Preferences Model', () => {
 
     test('should add an ingredient to the blacklist', () => {
       addToBlacklist(preferences, ingredient1);
-      expect(isBlacklisted(preferences, '1')).toBe(true);
+      expect(isBlacklisted(preferences, ingredient1)).toBe(true);
     });
 
     test('should not add duplicate ingredients to the blacklist', () => {
@@ -175,30 +175,30 @@ describe('Preferences Model', () => {
       addToBlacklist(preferences, ingredient1);
       addToBlacklist(preferences, ingredient2);
       
-      const result = removeFromBlacklist(preferences, '1');
+      const result = removeFromBlacklist(preferences, ingredient1);
       
       expect(result.isOk()).toBe(true);
-      expect(isBlacklisted(preferences, '1')).toBe(false);
-      expect(isBlacklisted(preferences, '2')).toBe(true);
+      expect(isBlacklisted(preferences, ingredient1)).toBe(false);
+      expect(isBlacklisted(preferences, ingredient2)).toBe(true);
     });
 
     test('should return error when removing from empty blacklist', () => {
-      const result = removeFromBlacklist(preferences, '1');
+      const result = removeFromBlacklist(preferences, ingredient1);
       expect(result.isOk()).toBe(false);
-      expect(result.unwrapErr().message).toContain('No blacklist found');
+      expect(result.unwrapErr().message).toContain('Blacklist is empty.');
     });
 
     test('should return error when removing non-existent ingredient', () => {
       addToBlacklist(preferences, ingredient1);
-      const result = removeFromBlacklist(preferences, '999');
+      const result = removeFromBlacklist(preferences, 'nonexistent-789');
       expect(result.isOk()).toBe(false);
-      expect(result.unwrapErr().message).toContain('Ingredient not found');
+      expect(result.unwrapErr().message).toContain('Ingredient not found in blacklist.');
     });
 
     test('should check if an ingredient is blacklisted', () => {
       addToBlacklist(preferences, ingredient1);
-      expect(isBlacklisted(preferences, '1')).toBe(true);
-      expect(isBlacklisted(preferences, '2')).toBe(false);
+      expect(isBlacklisted(preferences, ingredient1)).toBe(true);
+      expect(isBlacklisted(preferences, ingredient2)).toBe(false);
     });
   });
 
@@ -214,7 +214,7 @@ describe('Preferences Model', () => {
       const allergies = new Set([Allergy.Nuts]);
       const diet = createDiet('Vegan', 'Plant-based diet').unwrap();
       const diets = new Set([diet]);
-      const blacklist = new Set([{ id: '1', name: 'Ingredient 1' }]);
+      const blacklist = new Set(['tomato-123', 'onion-456']);
 
       const preferences = createPreferences(allergies, diets, blacklist);
       
