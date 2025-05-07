@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import cookbookDAO from '../dao/cookbook.dao';
 import recipeDAO from '../dao/recipe.dao';
-import { BaseRecipe, BaseRecipeDTO, fromDTO, Tag } from '../models/recipe';
+import { BaseRecipe, BaseRecipeDTO, Recipe, Tag, fromDTO } from '../models/recipe';
 import { None, Some } from 'ts-results-es';
 
 const router = express.Router();
@@ -47,8 +47,8 @@ router.post('/:userId/recipes', async (req: Request, res: Response) => {
         const recipeData: BaseRecipeDTO = req.body;
 
         const domain = fromDTO(recipeData);
-/*         console.log('Domain:', domain);
-        domain.ingredients.forEach((ingredient) => { console.warn(ingredient.quantity) }); */
+        /*         console.log('Domain:', domain);
+                domain.ingredients.forEach((ingredient) => { console.warn(ingredient.quantity) }); */
 
         const result = await cookbookDAO.createRecipe(userId, domain);
 
@@ -118,15 +118,17 @@ router.get('/:userId/search', async (req: Request, res: Response) => {
 router.put('/recipes/:recipeId', async (req: Request, res: Response) => {
     try {
         const recipeId = req.params.recipeId;
-        const recipeData = req.body;
+        const data: BaseRecipeDTO = req.body;
 
-        if (!recipeData.id) {
-            recipeData.id = recipeId;
-        } else if (recipeData.id !== recipeId) {
-            res.status(400).json({ error: 'Recipe ID in body does not match URL parameter' });
-        }
+        const base = fromDTO(data);
+        const recipeData: Recipe = {
+            ...base,
+            id: recipeId,
+        };
 
         const result = await recipeDAO.updateRecipe(recipeData);
+
+        console.warn('Result:', result);
 
         if (result.isOk()) {
             res.status(200).json(result.unwrap());
@@ -141,7 +143,12 @@ router.put('/recipes/:recipeId', async (req: Request, res: Response) => {
 router.post('/recipes/:recipeId/tags', async (req: Request, res: Response) => {
     try {
         const recipeId = req.params.recipeId;
-        const tag: Tag = req.body;
+        const data:{name:string, description?: string} = req.body;
+        const tag: Tag = {
+            name: data.name,
+            description: data.description ? Some(data.description) : None,
+        };
+        // const tag: Tag = req.body;
 
         if (!tag || !tag.name) {
             res.status(400).json({ error: 'Tag name is required' });
