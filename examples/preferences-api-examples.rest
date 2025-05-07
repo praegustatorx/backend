@@ -1,0 +1,117 @@
+# Preferences API Examples
+
+//This document contains example requests for the user preferences API endpoints.
+###
+## Test Endpoint
+
+
+# Test if the API is running
+GET http://localhost:8005/preferences/test HTTP/1.1
+
+### OR with curl:
+# curl -X GET http://localhost:8005/preferences/test
+
+
+## Get User Preferences
+
+
+# Get a user's preferences
+GET http://localhost:8005/preferences/user123 HTTP/1.1
+
+### OR with curl:
+# curl -X GET http://localhost:8005/preferences/user123
+
+
+## Create or Update User Preferences
+
+
+# Create or update a user's preferences
+POST http://localhost:8005/preferences/user123 HTTP/1.1
+Content-Type: application/json
+
+{
+  "allergies": ["Nuts", "Dairy"],
+  "diets": [
+    {
+      "name": "Vegan",
+      "description": "Plant-based diet excluding all animal products"
+    }
+  ],
+  "blacklist": ["tomato-123", "onion-456"]
+}
+
+### OR with curl:
+# curl -X POST http://localhost:8005/preferences/user123 \
+#   -H "Content-Type: application/json" \
+#   -d '{"allergies":["Nuts","Dairy"],"diets":[{"name":"Vegan","description":"Plant-based diet excluding all animal products"}],"blacklist":["tomato-123","onion-456"]}'
+
+
+## Allergies Management
+
+
+# Add an allergy to user preferences
+POST http://localhost:8005/preferences/user123/allergies HTTP/1.1
+Content-Type: application/json
+
+{
+  "allergy": "Gluten"
+}
+
+### OR with curl:
+# curl -X POST http://localhost:8005/preferences/user123/allergies \
+#   -H "Content-Type: application/json" \
+#   -d '{"allergy":"Gluten"}'
+
+
+# Remove an allergy from user preferences
+DELETE http://localhost:8005/preferences/user123/allergies/Gluten HTTP/1.1
+
+### OR with curl:
+# curl -X DELETE http://localhost:8005/preferences/user123/allergies/Dairy
+
+
+## Diets Management
+
+
+# Add a diet to user preferences
+POST http://localhost:8005/preferences/user123/diets HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Keto",
+  "description": "Low-carb, high-fat diet"
+}
+
+### OR with curl:
+# curl -X POST http://localhost:8005/preferences/user123/diets \
+#   -H "Content-Type: application/json" \
+#   -d '{"name":"Keto","description":"Low-carb, high-fat diet"}'
+
+
+# Remove a diet from user preferences
+DELETE http://localhost:8005/preferences/user123/diets/Vegan HTTP/1.1
+
+### OR with curl:
+# curl -X DELETE http://localhost:8005/preferences/user123/diets/Vegan
+
+
+## Blacklist Management
+
+
+# Add an ingredient to the blacklist
+POST http://localhost:8005/preferences/user123/blacklist HTTP/1.1
+Content-Type: application/json
+
+{"ingredient": "garlic-789"}
+
+### OR with curl:
+# curl -X POST http://localhost:8005/preferences/user123/blacklist \
+#   -H "Content-Type: application/json" \
+#   -d '"garlic-789"'
+
+
+# Remove an ingredient from the blacklist
+DELETE http://localhost:8005/preferences/user123/blacklist/garlic-789 HTTP/1.1
+
+### OR with curl:
+# curl -X DELETE http://localhost:8005/preferences/user123/blacklist/garlig-789
