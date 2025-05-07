@@ -8,7 +8,7 @@ export const GenericIngredientSchema = new Schema({
 });
 
 // Schema for nutrient amount
- const NutrientAmountSchema = new Schema({
+const NutrientAmountSchema = new Schema({
     amount: { type: Number, required: true },
     unit: { type: String, required: true }
 }, { _id: false });
@@ -24,7 +24,7 @@ const NutritionsSchema = new Schema({
 
 // Schema for measurement
 const MeasurementSchema = new Schema({
-    quantity: { type: Number, required: true },
+    amount: { type: Number, required: true }, // Renamed from quantity to amount for consistency
     unit: { type: String, required: true }
 }, { _id: false });
 
@@ -32,7 +32,7 @@ const MeasurementSchema = new Schema({
 export const PantryIngredientSchema = new Schema({
     id: { type: String, required: true },
     brand: { type: String, required: false },
-    genericId: { type: String, required: true },
+    type: { type: String, required: true }, // Changed from genericId to type
     quantity: MeasurementSchema,
     nutrition: NutritionsSchema,
     expiration_date: { type: Date, required: false }

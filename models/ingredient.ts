@@ -2,19 +2,9 @@ import { None, Option } from "ts-results-es";
 import { Nutritions } from "./nutritional_information";
 
 /**
- * Representing abstracted ingredient definition. 
+ * Representing abstracted ingredient type definition. 
  */
-export type GenericIngredient = {
-    id: string;
-    name: string;
-}
-
-export const CreateGenericIngredient = (id: string, name: string): GenericIngredient => {
-    return {
-        id,
-        name
-    };
-}
+export type IngredientType = string;
 
 /**
  * Representing the quantity of an ingredient.
@@ -48,12 +38,12 @@ export enum Unit {
 // TODO: keep ingredient's measurements only in mililiter and gram.
 /** 
  * Representing an ingredient in the pantry.
- * The pantry ingredient is a concrete example of a generic ingredient with a brand and additional information.
+ * The pantry ingredient is a concrete example of an ingredient with a brand and additional information.
 */
 export type PantryIngredient = {
     id: string;
     brand: Option<string>;
-    genericId: string;
+    type: IngredientType;
     quantity: Option<Measurement>;
     nutrition: Nutritions;
     expiration_date: Option<ExpDate>;
@@ -62,7 +52,7 @@ export type PantryIngredient = {
 export const CreatePantryIngredient = (
     id: string,
     brand: Option<string> = None,
-    genericId: string,
+    type: IngredientType,
     quantity: Option<Measurement> = None,
     nutrition: Nutritions,
     expiration_date: Option<ExpDate> = None
@@ -70,7 +60,7 @@ export const CreatePantryIngredient = (
     return {
         id,
         brand,
-        genericId,
+        type,
         quantity,
         nutrition,
         expiration_date
@@ -104,19 +94,19 @@ export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate 
 
 /**
  * Representing a recipe ingredient.
- * The recipe ingredient is a concrete example of a generic ingredient with quantity.
+ * The recipe ingredient is a concrete example with quantity.
 */
 export type RecipeIngredient = {
-    genericId: string;
+    type: IngredientType;
     quantity: Option<Measurement>;
 }
 
 export const CreateRecipeIngredient = (
-    genericId: string,
+    type: IngredientType,
     quantity: Option<Measurement> = None
 ): RecipeIngredient => {
     return {
-        genericId,
+        type,
         quantity
     };
 }

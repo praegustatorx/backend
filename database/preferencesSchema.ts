@@ -1,7 +1,6 @@
 import { Schema, Document, model } from 'mongoose';
 import { Preferences, Allergy, Diet, preferencesFromDTO } from '../models/preferences';
-import { GenericIngredient } from '../models/ingredient';
-import { GenericIngredientSchema } from './ingredientsSchema';
+import { IngredientType } from '../models/ingredient';
 
 // Schema for Diet
 const DietSchema = new Schema({
@@ -14,7 +13,7 @@ export interface PreferencesDocument extends Document {
     userId: string;
     allergies: Allergy[];
     diets: Diet[];
-    blacklist: GenericIngredient[];
+    blacklist: string[]; // Changed to string[] as IngredientType is string
 }
 
 // Preferences Schema
@@ -26,7 +25,7 @@ const PreferencesSchema = new Schema({
         default: []
     }],
     diets: [DietSchema],
-    blacklist: [GenericIngredientSchema]
+    blacklist: [String] // Changed to use String type directly instead of GenericIngredientSchema
 });
 
 const PreferencesModel = model<PreferencesDocument>('Preferences', PreferencesSchema);
@@ -37,7 +36,7 @@ export default PreferencesModel;
 export const toPreferences = (doc: PreferencesDocument): Preferences => {
     const allergies = doc.allergies as Allergy[];
     const diets = doc.diets as Diet[];
-    const blacklist = doc.blacklist as GenericIngredient[];
+    const blacklist = doc.blacklist as IngredientType[]; // Changed to string[]
     return preferencesFromDTO({ allergies, diets, blacklist });
 };
 

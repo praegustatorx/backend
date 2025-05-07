@@ -46,7 +46,7 @@ export type BaseRecipeDTO = {
     name: string;
     description?: string;
     ingredients: {
-        genericId: string;
+        type: string; // Changed from genericId to type
         quantity?: {
             amount: number;
             unit: string;
@@ -63,9 +63,9 @@ export type BaseRecipeDTO = {
 export function fromDTO(dto: BaseRecipeDTO): BaseRecipe {
     // Convert ingredients
     const ingredients: RecipeIngredient[] = dto.ingredients.map(ing => ({
-        genericId: ing.genericId,
+        type: ing.type, // Changed from genericId to type
         quantity: ing.quantity ? Some({
-            amount: ing.quantity.amount, // Use amount from DTO but map to quantity for domain model
+            amount: ing.quantity.amount,
             unit: ing.quantity.unit as Unit
         }) : None
     }));

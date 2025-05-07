@@ -5,15 +5,13 @@ import { None, Option, Some } from 'ts-results-es';
 import { createNutritions, NutrientUnit } from '../models/nutritional_information';
 import { PantryIngredientSchema } from './ingredientsSchema';
 
-
-
 // Interface for the Pantry document
 export interface PantryDocument extends Document {
     userId: string;
     ingredients: {
         id: string;
         brand?: string;
-        genericId: string;
+        type: string; // Changed from genericId to type
         quantity?: {
             amount: number;
             unit: string;
@@ -101,7 +99,7 @@ export const toPantry = (doc: PantryDocument): Pantry => {
         return CreatePantryIngredient(
             ingredient.id,
             brandOption,
-            ingredient.genericId,
+            ingredient.type, // Changed from genericId to type
             quantityOption,
             nutrition,
             expirationOption
@@ -116,9 +114,9 @@ export const fromPantry = (pantry: Pantry, userId: string): Partial<PantryDocume
         return {
             id: ingredient.id,
             brand: ingredient.brand.isSome() ? ingredient.brand.unwrap() : undefined,
-            genericId: ingredient.genericId,
+            type: ingredient.type, // Changed from genericId to type
             quantity: ingredient.quantity.isSome() ? {
-                amount: ingredient.quantity.unwrap().amount, // Changed from 'quantity' to 'amount'
+                amount: ingredient.quantity.unwrap().amount,
                 unit: ingredient.quantity.unwrap().unit as string
             } : undefined,
             nutrition: {

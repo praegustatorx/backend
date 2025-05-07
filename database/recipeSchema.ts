@@ -26,9 +26,9 @@ export const toTag = (schemaTag: { name: string; description?: string }): Tag =>
 
 // Schema for RecipeIngredient
 const RecipeIngredientSchema = new Schema({
-    genericId: { type: String, required: true },
+    type: { type: String, required: true }, // Changed from genericId to type
     quantity: {
-        quantity: { type: Number, required: false },
+        amount: { type: Number, required: false },
         unit: { type: String, required: false }
     }
 }, { _id: false });
@@ -39,7 +39,7 @@ export interface RecipeDocument extends Document {
     name: string;
     description?: string;
     ingredients: {
-        genericId: string;
+        type: string; // Changed from genericId to type
         quantity?: {
             amount: number;
             unit: string;
@@ -69,7 +69,7 @@ export default RecipeModel;
 export const toRecipe = (doc: RecipeDocument): Recipe => {
     // Convert ingredients
     const ingredients: RecipeIngredient[] = doc.ingredients.map(ingredient => ({
-        genericId: ingredient.genericId,
+        type: ingredient.type, // Changed from genericId to type
         quantity: ingredient.quantity ? Some({
             amount: ingredient.quantity.amount,
             unit: ingredient.quantity.unit as Unit
@@ -105,7 +105,7 @@ export const toRecipe = (doc: RecipeDocument): Recipe => {
 export const fromRecipe = (recipe: Recipe | BaseRecipe): Partial<RecipeDocument> => {
     // Convert ingredients
     const ingredients = recipe.ingredients.map(ingredient => ({
-        genericId: ingredient.genericId,
+        type: ingredient.type, // Changed from genericId to type
         quantity: ingredient.quantity.isSome() ? {
             amount: ingredient.quantity.unwrap().amount,
             unit: ingredient.quantity.unwrap().unit
