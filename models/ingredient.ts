@@ -8,13 +8,14 @@ export type IngredientType = string;
 
 /**
  * Representing the quantity of an ingredient.
+ * @field amount - validation should be done before creating!.
 */
 export type Measurement = {
     amount: number;
     unit: Unit;
 }
 
-export const CreateMeasurement = (amount: number, unit: Unit): Measurement => {
+export const createMeasurement = (amount: number, unit: Unit): Measurement => {
     return {
         amount,
         unit
@@ -87,7 +88,7 @@ export type DbPantryIngredient = {
 
 export type ExpDate = Date;
 
-export const CreateExpDate = (
+export const createExpDate = (
     year?: number,
     month?: number,
     day?: number
@@ -104,7 +105,7 @@ export const CreateExpDate = (
     return date;
 };
 
-export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
+export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngredient, date: ExpDate = createExpDate()): boolean => {
     return ingredient.expiration_date
         .map((expDate) => expDate <= date)
         .unwrapOrElse(() => false);
@@ -121,7 +122,7 @@ export type RecipeIngredient = {
     quantity: Option<Measurement>;
 }
 
-export const CreateRecipeIngredient = (
+export const createRecipeIngredient = (
     type: IngredientType,
     quantity: Option<Measurement> = None
 ): RecipeIngredient => {
