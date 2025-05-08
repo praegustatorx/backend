@@ -1,39 +1,31 @@
-import { Schema } from "mongoose";
+import { Schema, model } from "mongoose";
 
-// Schema for GenericIngredient (simplified, assuming it has id and name)
-export const GenericIngredientSchema = new Schema({
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    // Add other necessary fields from GenericIngredient
-});
-
-// Schema for nutrient amount
-const NutrientAmountSchema = new Schema({
+// Abstract schema for {amount: number, unit: string}
+const AmountUnitSchema = new Schema({
     amount: { type: Number, required: true },
     unit: { type: String, required: true }
 }, { _id: false });
 
-// Schema for nutritions
-const NutritionsSchema = new Schema({
-    portion: NutrientAmountSchema,
-    calories: [NutrientAmountSchema],
-    protein: NutrientAmountSchema,
-    fat: NutrientAmountSchema,
-    carbohydrates: NutrientAmountSchema
+// Schema for Nutritional Information
+const NutritionalInformationSchema = new Schema({
+    portion: AmountUnitSchema,
+    calories: AmountUnitSchema,
+    protein: AmountUnitSchema,
+    fat: AmountUnitSchema,
+    carbohydrates: AmountUnitSchema
 }, { _id: false });
 
-// Schema for measurement
-const MeasurementSchema = new Schema({
-    amount: { type: Number, required: true }, // Renamed from quantity to amount for consistency
-    unit: { type: String, required: true }
-}, { _id: false });
+export { AmountUnitSchema, NutritionalInformationSchema };
 
 // Schema for PantryIngredient
 export const PantryIngredientSchema = new Schema({
-    id: { type: String, required: true },
+    // MongoDB will automatically add _id field for each document
     brand: { type: String, required: false },
     type: { type: String, required: true }, // Changed from genericId to type
-    quantity: MeasurementSchema,
-    nutrition: NutritionsSchema,
+    quantity: AmountUnitSchema,
+    nutrition: NutritionalInformationSchema,
     expiration_date: { type: Date, required: false }
 });
+
+// Create the PantryIngredient model
+export const PantryIngredientModel = model('PantryIngredient', PantryIngredientSchema);
