@@ -1,4 +1,4 @@
-import { None, Option } from "ts-results-es";
+import { None, Option, Some } from "ts-results-es";
 import { Nutritions } from "./nutritional_information";
 
 /**
@@ -45,27 +45,29 @@ export type PantryIngredient = {
     brand: Option<string>;
     type: IngredientType;
     quantity: Option<Measurement>;
-    nutrition: Nutritions;
+    nutrition: Option<Nutritions>;
     expiration_date: Option<ExpDate>;
 }
 
 export const CreatePantryIngredient = (
     id: string,
-    brand: Option<string> = None,
     type: IngredientType,
-    quantity: Option<Measurement> = None,
-    nutrition: Nutritions,
-    expiration_date: Option<ExpDate> = None
+    brand?: string,
+    quantity?: Measurement,
+    nutrition?: Nutritions,
+    expiration_date?:ExpDate
 ): PantryIngredient => {
     return {
         id,
-        brand,
         type,
-        quantity,
-        nutrition,
-        expiration_date
+        brand: brand? Some(brand) : None,
+        quantity: quantity? Some(quantity) : None,
+        nutrition: nutrition? Some(nutrition) : None,
+        expiration_date: expiration_date? Some(expiration_date) : None
     };
 }
+
+export type CreationPantryIngredient = Omit<PantryIngredient, "id">;
 
 export type ExpDate = Date;
 
