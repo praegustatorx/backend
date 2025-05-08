@@ -1,7 +1,7 @@
 import express, { Request, Response } from 'express';
 import PantryModel, { toPantry, fromPantry, PantryDocument } from '../database/pantrySchema';
 import { createPantry, addIngredient, removeIngredient, getExpiredIngredients } from '../models/pantry';
-import { CreatePantryIngredient } from '../models/ingredient';
+import { createPantryIngredient } from '../models/ingredient';
 import { None, Some } from 'ts-results-es';
 
 const router = express.Router();
@@ -75,7 +75,7 @@ router.post('/:userId', async (req: Request, res: Response): Promise<void> => {
         const { ingredients } = req.body;
 
         // Convert incoming ingredients to domain model
-        const pantryIngredients = ingredients.map((ing: any) => CreatePantryIngredient(
+        const pantryIngredients = ingredients.map((ing: any) => createPantryIngredient(
             ing.id,
             ing.brand ? Some(ing.brand) : None,
             ing.type, // Changed from genericId to type
@@ -124,7 +124,7 @@ router.put('/:userId/ingredients', async (req: Request, res: Response): Promise<
         const pantry = toPantry(pantryDoc);
 
         // Create the ingredient and add it to pantry
-        const ingredient = CreatePantryIngredient(
+        const ingredient = createPantryIngredient(
             ingredientData.id,
             ingredientData.brand ? Some(ingredientData.brand) : None,
             ingredientData.type, // Changed from genericId to type

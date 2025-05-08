@@ -1,5 +1,5 @@
 import { None, Option, Some } from "ts-results-es";
-import { Nutritions } from "./nutritional_information";
+import { Nutrition } from "./nutritional_information";
 
 /**
  * Representing abstracted ingredient type definition. 
@@ -9,7 +9,7 @@ export type IngredientType = string;
 /**
  * Representing the quantity of an ingredient.
 */
-type Measurement = {
+export type Measurement = {
     amount: number;
     unit: Unit;
 }
@@ -22,18 +22,20 @@ export const CreateMeasurement = (amount: number, unit: Unit): Measurement => {
 }
 // TODO: Create a type PantryUnit, which will be type limited to unit: Unit.MILILITER | Unit.GRAM
 
-// TODO: Add more or less measurements if needed
+// TODO: Add more or less measurements if needed such as Dl or Cl
 export enum Unit {
-    MILLILITER = "milliliter",
-    LITER = "liter",
-    GRAM = "gram",
-    MILLIGRAM = "milligram",
-    KILOGRAM = "kilogram",
+    ML = "ml",
+    L = "l",
+    G = "g",
+    MG = "mg",
+    KG = "kg",
     CUP = "cup",
-    TABLESPOON = "tablespoon",
-    TEASPOON = "teaspoon",
+    TBSP = "tbsp",
+    TSP = "tsp",
     PINCH = "pinch",
 }
+
+// ----------------- Pantry Ingredient ----------------- //
 
 // TODO: keep ingredient's measurements only in mililiter and gram.
 /// This type will be used only when creating a pantry ingredient.
@@ -41,18 +43,18 @@ export type PantryIngredient = {
     type: IngredientType;
     brand: Option<string>;
     quantity: Option<Measurement>;
-    nutrition: Option<Nutritions>;
+    nutrition: Option<Nutrition>;
     expiration_date: Option<ExpDate>;
 }
 
-export const CreatePantryIngredient = (
+export const createPantryIngredient = (
     type: IngredientType,
     brand?: string,
     quantity?: Measurement,
-    nutrition?: Nutritions,
+    nutrition?: Nutrition,
     expiration_date?: ExpDate
 ): PantryIngredient => {
-    return CreatePantryIngredientFromOptions(
+    return newPantryIngredient(
         type,
         brand ? Some(brand) : None,
         quantity ? Some(quantity) : None,
@@ -61,11 +63,11 @@ export const CreatePantryIngredient = (
     );
 }
 
-export const CreatePantryIngredientFromOptions = (
+export const newPantryIngredient = (
     type: IngredientType,
     brand: Option<string>,
     quantity: Option<Measurement>,
-    nutrition: Option<Nutritions>,
+    nutrition: Option<Nutrition>,
     expiration_date: Option<ExpDate>
 ): PantryIngredient => {
     return {
@@ -76,6 +78,8 @@ export const CreatePantryIngredientFromOptions = (
         expiration_date
     };
 }
+
+//  ----------------- Database persisted Pantry Ingredient ----------------- //
 
 export type DbPantryIngredient = {
     id: string;
@@ -105,6 +109,8 @@ export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngre
         .map((expDate) => expDate <= date)
         .unwrapOrElse(() => false);
 }
+
+// ----------------- Recipe Ingredient ----------------- //
 
 /**
  * Representing a recipe ingredient.
