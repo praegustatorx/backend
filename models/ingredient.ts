@@ -36,38 +36,50 @@ export enum Unit {
 }
 
 // TODO: keep ingredient's measurements only in mililiter and gram.
-/** 
- * Representing an ingredient in the pantry.
- * The pantry ingredient is a concrete example of an ingredient with a brand and additional information.
-*/
+/// This type will be used only when creating a pantry ingredient.
 export type PantryIngredient = {
-    id: string;
-    brand: Option<string>;
     type: IngredientType;
+    brand: Option<string>;
     quantity: Option<Measurement>;
     nutrition: Option<Nutritions>;
     expiration_date: Option<ExpDate>;
 }
 
 export const CreatePantryIngredient = (
-    id: string,
     type: IngredientType,
     brand?: string,
     quantity?: Measurement,
     nutrition?: Nutritions,
-    expiration_date?:ExpDate
+    expiration_date?: ExpDate
+): PantryIngredient => {
+    return CreatePantryIngredientFromOptions(
+        type,
+        brand ? Some(brand) : None,
+        quantity ? Some(quantity) : None,
+        nutrition ? Some(nutrition) : None,
+        expiration_date ? Some(expiration_date) : None
+    );
+}
+
+export const CreatePantryIngredientFromOptions = (
+    type: IngredientType,
+    brand: Option<string>,
+    quantity: Option<Measurement>,
+    nutrition: Option<Nutritions>,
+    expiration_date: Option<ExpDate>
 ): PantryIngredient => {
     return {
-        id,
         type,
-        brand: brand? Some(brand) : None,
-        quantity: quantity? Some(quantity) : None,
-        nutrition: nutrition? Some(nutrition) : None,
-        expiration_date: expiration_date? Some(expiration_date) : None
+        brand,
+        quantity,
+        nutrition,
+        expiration_date
     };
 }
 
-export type CreationPantryIngredient = Omit<PantryIngredient, "id">;
+export type DbPantryIngredient = {
+    id: string;
+} & PantryIngredient;
 
 export type ExpDate = Date;
 
@@ -88,7 +100,7 @@ export const CreateExpDate = (
     return date;
 };
 
-export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
+export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
     return ingredient.expiration_date
         .map((expDate) => expDate <= date)
         .unwrapOrElse(() => false);
