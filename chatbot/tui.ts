@@ -1,23 +1,54 @@
 import { None, Result, Some, Option, Ok, Err } from "ts-results-es";
 import * as readline from 'readline';
-import { AskGemini, Gemini } from "./gemini";
+import { AskGemini, AskGeminiStream, Gemini } from "./gemini";
+import { match } from "assert";
+import { GenerateContentResponse } from "@google/genai";
 
-export const runBasicQuery = async (model: Gemini, chatId: string, promptText: string): Promise<Result<Option<string>, Error>> => {
-    return AskGemini(model, chatId, promptText);
-}
-
-// Function to read from terminal and send to Gemini
-export const startTerminalChat = (model:Gemini) => {
+const initReadline = () => {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout
     });
-
     console.log("=== Gemini Terminal Chat ===");
     console.log("Type your questions or 'exit' to quit");
-    console.log("===========================");
+    console.log("============================");
+    return rl;
+}
 
-    const askQuestion = () => {
+// Define the print handler type
+type PrintHandler = (chatId: string, promptText: string) => Promise<void>;
+
+// Function to create a stream print handler
+const createStreamPrintHandler = (): PrintHandler => {
+    return async (chatId: string, promptText: string) => {
+        const stream = await AskGeminiStream(chatId, promptText);
+        if (stream.isOk()) {
+            await printStream(stream.unwrap());
+        } else {
+            console.error(`Error: ${stream.unwrapErr().message}`);
+        }
+    };
+};
+
+// Function to create a non-stream print handler
+const createNormalPrintHandler = (): PrintHandler => {
+    return async (chatId: string, promptText: string) => {
+        const response = await AskGemini(chatId, promptText);
+        if (response.isOk()) {
+            printResponse(response.unwrap());
+        } else {
+            console.error(`Error: ${response.unwrapErr().message}`);
+        }
+    };
+};
+
+// Function to read from terminal and send to Gemini
+export const startTerminalChat = (inChunks: boolean) => {
+    const rl = initReadline();
+    // Create the appropriate handler based on inChunks
+    const printHandler = inChunks ? createStreamPrintHandler() : createNormalPrintHandler();
+
+    const askQuestion = async () => {
         rl.question('You: ', async (input) => {
             if (input.toLowerCase() === 'exit') {
                 console.log('Goodbye!');
@@ -31,14 +62,7 @@ export const startTerminalChat = (model:Gemini) => {
 
             try {
                 console.log('Gemini: ');
-                const response = await runBasicQuery(model, chatId, promptText);
-                if (response.isOk()) {
-                    const inner = response.unwrap();
-                    const output = inner.isSome() ? inner.unwrap() : "No response received.";
-                    console.log(output);
-                } else {
-                    console.log(`Error: ${response.unwrapErr().message}`);
-                }
+                await printHandler(chatId, promptText);
             } catch (error) {
                 console.log(`Error getting response: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
@@ -50,3 +74,14 @@ export const startTerminalChat = (model:Gemini) => {
 
     askQuestion();
 };
+
+const printStream = async (stream: AsyncGenerator<GenerateContentResponse>) => {
+    for await (const next of stream) {
+        process.stdout.write(next.text ?? "");
+    }
+    console.log(); // Add newline after stream completes
+}
+
+const printResponse = (response: Option<string>) => {
+    response.isSome() ? console.log(response.unwrap()) : console.log("No response received.");
+}

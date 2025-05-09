@@ -23,13 +23,14 @@ const startServer = async () => {
     });
 }
 
-var gemini = CreateGemini("AIzaSyBbYsraA0pEJWZ97z7VEMjyk1uOOZ - SwRg");
-
-if (process.argv.includes('--chat')) {
+const args = process.argv;
+if (args.includes('--chat')) {
     console.warn(`${"\x1b[33m"}Running only the chat terminal.${"\x1b[0m"}`);
-    startTerminalChat(gemini);
-} else {
-    startServer().then(() => {
-        startTerminalChat(gemini);
-    });
+    startTerminalChat(false);
+} else if (args.includes('--chat-stream')) {
+    console.warn(`${"\x1b[33m"}Running only the chat terminal with stream responses.${"\x1b[0m"}`);
+    startTerminalChat(true);
+}
+else {
+    startServer();
 }
