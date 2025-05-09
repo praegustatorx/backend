@@ -1,4 +1,4 @@
-import { None, Option, Some } from "ts-results-es";
+import { Err, None, Ok, Option, Result, Some } from "ts-results-es";
 import { Nutrition } from "./nutritional_information";
 
 /**
@@ -104,6 +104,24 @@ export const createExpDate = (
     date.setHours(23, 59, 59, 999); // Set to the end of the day
     return date;
 };
+
+export const createExpDateFromMills = (mills: number): ExpDate => {
+    const date = new Date(mills);
+    date.setHours(23, 59, 59, 999); // Set to the end of the day
+    return date;
+}
+
+export const parseExpDate = (dateString?: string): Result<ExpDate, void> => {
+    if (!dateString) return Ok(createExpDate());
+
+
+    const mills = Date.parse(dateString);
+    if (isNaN(mills)) return Err(undefined); // Invalid date string
+
+    const date = new Date(mills);
+    date.setHours(23, 59, 59, 999); // Set to the end of the day
+    return Ok(date);
+}
 
 export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngredient, date: ExpDate = createExpDate()): boolean => {
     return ingredient.expiration_date

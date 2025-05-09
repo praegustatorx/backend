@@ -18,18 +18,3 @@ const CookbookSchema = new Schema({
 const CookbookModel = model<CookbookDocument>('Cookbook', CookbookSchema);
 
 export default CookbookModel;
-
-// Utility functions to convert between Mongoose document and domain model
-/* export const toCookbook = async (doc: CookbookDocument): Promise<Cookbook> => {
-    // Fetch all recipes referenced in the cookbook
-    const recipeDocuments = await RecipeModel.find({
-        _id: { $in: doc.recipes }
-    });
-
-    // Convert each recipe document to domain model
-    const recipes: Recipe[] = recipeDocuments.map(recipeDoc => toRecipe(recipeDoc));
-
-    return {
-        recipes
-    };
-}; */

@@ -2,7 +2,13 @@ import { Schema, Document, model } from "mongoose";
 import {
   PantryIngredientDoc,
   PantryIngredientSchema,
+  toDbPantryIngredient,
+  MeasurementDoc,
+  NutritionalInformationDoc,
 } from "./ingredientsSchema";
+import { PantryDTO } from "../models/pantry";
+import { PantryIngredient, Measurement } from "../models/ingredient";
+import { Nutrition, NutrientAmount } from "../models/nutritional_information";
 
 // Pantry Schema
 const PantrySchema = new Schema({
@@ -10,11 +16,19 @@ const PantrySchema = new Schema({
   ingredients: [PantryIngredientSchema],
 });
 
-const PantryModel = model<PantryDoc>("Pantry", PantrySchema);
-
-export default PantryModel;
-
-interface PantryDoc extends Document {
+// Interface for Mongoose Document
+export interface PantryDocument extends Document {
   userId: string;
   ingredients: PantryIngredientDoc[];
 }
+
+const PantryModel = model<PantryDocument>("Pantry", PantrySchema);
+
+export default PantryModel;
+
+export const toPantryDto = (doc: PantryDocument): PantryDTO => {
+  return {
+    userId: doc.userId,
+    ingredients: doc.ingredients.map((ingredientDoc) => toDbPantryIngredient(ingredientDoc)),
+  };
+ }
