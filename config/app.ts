@@ -6,6 +6,7 @@ import authRoter from '../routes/authRoute';
 import fileUploadRouter from '../routes/fileUploadRoute';
 import preferencesRouter from '../routes/preferencesRoute';
 import chatRouter from '../routes/chatRoute';
+import pantryRouter from '../routes/pantryRoute';
 
 dotenv.config();
 
@@ -18,5 +19,6 @@ app.use('/auth', authRoter);
 app.use('/file', fileUploadRouter);
 app.use('/chat', chatRouter);
 app.use('/preferences', preferencesRouter)
+app.use('/pantry', pantryRouter)
 
 export default app;
