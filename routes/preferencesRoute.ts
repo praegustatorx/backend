@@ -45,7 +45,7 @@ router.get("/:userId", async (req: Request, res: Response): Promise<void> => {
     }
 });
 
-// Create or update user preferences
+// Update user preferences
 router.post("/:userId", async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.params.userId;
@@ -55,7 +55,7 @@ router.post("/:userId", async (req: Request, res: Response): Promise<void> => {
         const result = await preferencesDAO.updatePreferences(userId, userPrefs);
 
         if (result.isOk()) {
-            res.status(201).end(); // Or res.status(200).json(preferencesIntoDTO(result.value)) if returning data
+            res.status(200).end(); // Changed from 201 to 200 for update
         } else {
             console.error('Error updating preferences via DAO:', result.error);
             res.status(500).json({ message: result.error.message || 'Failed to update preferences' });

@@ -1,12 +1,13 @@
 import { Result, Ok, Err } from 'ts-results-es';
 import PreferencesModel, { toPreferences, fromPreferences, PreferencesDocument } from '../database/preferencesSchema';
-import { Preferences, createPreferences as createDefaultDomainPreferences } from '../models/preferences';
+import { Preferences, createPreferences as createDefaultDomainPreferences, Allergy, Diet } from '../models/preferences';
 import { ClientSession, Types } from 'mongoose';
+import { IngredientType } from '../models/ingredient'; // Assuming IngredientType is string
 
 export type PreferencesDAO = {
     getPreferencesByUserId: (userId: string) => Promise<Result<Preferences, Error>>;
     createPreferences: (userId: string, session?: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
-    updatePreferences: (userId: string, preferences: Preferences) => Promise<Result<Preferences, Error>>;
+    updatePreferences: (userId: string, preferences: Partial<Preferences>) => Promise<Result<Preferences, Error>>;
 };
 
 const preferencesDAO: PreferencesDAO = {
@@ -41,17 +42,33 @@ const preferencesDAO: PreferencesDAO = {
         }
     },
 
-    async updatePreferences(userId: string, preferences: Preferences): Promise<Result<Preferences, Error>> {
+    async updatePreferences(userId: string, preferences: Partial<Preferences>): Promise<Result<Preferences, Error>> {
         try {
-            const updateData = fromPreferences(preferences, userId);
+            // Construct the update payload, converting Sets to Arrays
+            const updatePayload: {
+                allergies?: Allergy[];
+                diets?: Diet[];
+                blacklist?: IngredientType[];
+            } = {};
+
+            if (preferences.allergies !== undefined) {
+                updatePayload.allergies = Array.from(preferences.allergies);
+            }
+            if (preferences.diets !== undefined) {
+                updatePayload.diets = Array.from(preferences.diets);
+            }
+            if (preferences.blacklist !== undefined) {
+                updatePayload.blacklist = Array.from(preferences.blacklist);
+            }
+
             const updatedDoc = await PreferencesModel.findOneAndUpdate(
                 { userId },
-                updateData,
-                { upsert: true, new: true, runValidators: true }
+                { $set: updatePayload },
+                { new: true, runValidators: true }
             );
 
             if (!updatedDoc) {
-                return Err(new Error('Failed to update or create preferences'));
+                return Err(new Error('Preferences not found or failed to update'));
             }
             return Ok(toPreferences(updatedDoc));
         } catch (error) {
