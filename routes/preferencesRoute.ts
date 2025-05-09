@@ -13,10 +13,7 @@ import {
     preferencesIntoDTO,
 } from "../models/preferences";
 import { IngredientType } from "../models/ingredient";
-import PreferencesModel, {
-    toPreferences,
-    fromPreferences,
-} from "../database/preferencesSchema";
+import preferencesDAO from '../dao/preferences.dao'; // Import the DAO
 
 const router = express.Router();
 
@@ -30,15 +27,18 @@ router.get("/test", (req: Request, res: Response): void => {
 router.get("/:userId", async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.params.userId;
+        const result = await preferencesDAO.getPreferencesByUserId(userId);
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
-            return;
+        if (result.isOk()) {
+            res.status(200).json(preferencesIntoDTO(result.value));
+        } else {
+            if (result.error.message.toLowerCase().includes('not found')) {
+                res.status(404).json({ message: result.error.message });
+            } else {
+                console.error('Error fetching preferences via DAO:', result.error);
+                res.status(500).json({ message: 'Internal server error retrieving preferences' });
+            }
         }
-
-        const preferences = toPreferences(preferencesDoc);
-        res.status(200).json(preferencesIntoDTO(preferences));
     } catch (error) {
         console.error('Error fetching preferences:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -52,13 +52,14 @@ router.post("/:userId", async (req: Request, res: Response): Promise<void> => {
         const { allergies, diets, blacklist } = req.body;
 
         const userPrefs = preferencesFromDTO({ allergies, diets, blacklist });
+        const result = await preferencesDAO.updatePreferences(userId, userPrefs);
 
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(userPrefs, userId),
-            { upsert: true, new: true }
-        );
-        res.status(201).end();
+        if (result.isOk()) {
+            res.status(201).end(); // Or res.status(200).json(preferencesIntoDTO(result.value)) if returning data
+        } else {
+            console.error('Error updating preferences via DAO:', result.error);
+            res.status(500).json({ message: result.error.message || 'Failed to update preferences' });
+        }
     } catch (error) {
         console.error('Error creating/updating preferences:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -71,25 +72,26 @@ router.post("/:userId/allergies", async (req: Request, res: Response): Promise<v
         const userId = req.params.userId;
         const { allergy } = req.body;
 
-        if (!Object.values(Allergy).includes(allergy)) {
+        if (!Object.values(Allergy).includes(allergy as Allergy)) {
             res.status(400).json({ message: "Invalid allergy type" });
             return;
         }
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
             return;
         }
+        const preferences = getResult.value;
+        addAllergy(preferences, allergy as Allergy);
 
-        const preferences = toPreferences(preferencesDoc);
-        addAllergy(preferences, allergy);
-
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(preferences, userId)
-        );
-        res.status(200).end();
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
+            res.status(200).end();
+        } else {
+            console.error('Error adding allergy via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save allergy' });
+        }
     } catch (error) {
         console.error('Error adding allergy:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -100,25 +102,32 @@ router.post("/:userId/allergies", async (req: Request, res: Response): Promise<v
 router.delete("/:userId/allergies/:allergy", async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = req.params.userId;
-        const allergy = req.params.allergy as Allergy;
+        const allergyParam = req.params.allergy as Allergy;
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        if (!Object.values(Allergy).includes(allergyParam)) {
+            res.status(400).json({ message: "Invalid allergy type" });
             return;
         }
 
-        const preferences = toPreferences(preferencesDoc);
-        const allergyRemoved = removeAllergy(preferences, allergy);
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
+            return;
+        }
+        const preferences = getResult.value;
+        const allergyRemovedResult = removeAllergy(preferences, allergyParam);
 
-        if (allergyRemoved.isOk()) {
-            await PreferencesModel.findOneAndUpdate(
-                { userId },
-                fromPreferences(preferences, userId)
-            );
+        if (allergyRemovedResult.isErr()) {
+            res.status(400).json({ message: allergyRemovedResult.error.message });
+            return;
+        }
+
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
             res.status(200).end();
         } else {
-            res.status(400).json({ message: allergyRemoved.unwrapErr().message });
+            console.error('Error removing allergy via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save changes after removing allergy' });
         }
     } catch (error) {
         console.error('Error removing allergy:', error);
@@ -138,20 +147,21 @@ router.post("/:userId/diets", async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
             return;
         }
-
-        const preferences = toPreferences(preferencesDoc);
+        const preferences = getResult.value;
         addDiet(preferences, dietResult.unwrap());
 
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(preferences, userId)
-        );
-        res.status(200).end();
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
+            res.status(200).end();
+        } else {
+            console.error('Error adding diet via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save diet' });
+        }
     } catch (error) {
         console.error('Error adding diet:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -164,25 +174,26 @@ router.delete("/:userId/diets/:dietName", async (req: Request, res: Response): P
         const userId = req.params.userId;
         const dietName = req.params.dietName;
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
+            return;
+        }
+        const preferences = getResult.value;
+        const dietRemovedResult = removeDietByName(preferences, dietName);
+
+        if (dietRemovedResult.isErr()) {
+            res.status(400).json({ message: dietRemovedResult.unwrapErr().message });
             return;
         }
 
-        const preferences = toPreferences(preferencesDoc);
-        const dietRemoved = removeDietByName(preferences, dietName);
-
-        if (dietRemoved.isErr()) {
-            res.status(400).json({ message: dietRemoved.unwrapErr().message });
-            return;
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
+            res.status(200).end();
+        } else {
+            console.error('Error removing diet via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save changes after removing diet' });
         }
-
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(preferences, userId)
-        );
-        res.status(200).end();
     } catch (error) {
         console.error('Error removing diet:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -200,20 +211,21 @@ router.post("/:userId/blacklist", async (req: Request, res: Response): Promise<v
             return;
         }
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
             return;
         }
-
-        const preferences = toPreferences(preferencesDoc);
+        const preferences = getResult.value;
         addToBlacklist(preferences, ingredient);
 
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(preferences, userId)
-        );
-        res.status(200).end();
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
+            res.status(200).end();
+        } else {
+            console.error('Error adding to blacklist via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save blacklist change' });
+        }
     } catch (error) {
         console.error('Error adding ingredient to blacklist:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -226,25 +238,26 @@ router.delete("/:userId/blacklist/:ingredientId", async (req: Request, res: Resp
         const userId = req.params.userId;
         const ingredientId = req.params.ingredientId;
 
-        const preferencesDoc = await PreferencesModel.findOne({ userId });
-        if (!preferencesDoc) {
-            res.status(404).json({ message: "Preferences not found" });
+        const getResult = await preferencesDAO.getPreferencesByUserId(userId);
+        if (getResult.isErr()) {
+            res.status(404).json({ message: getResult.error.message || "Preferences not found" });
+            return;
+        }
+        const preferences = getResult.value;
+        const isRemovedResult = removeFromBlacklist(preferences, ingredientId);
+
+        if (isRemovedResult.isErr()) {
+            res.status(400).json({ message: isRemovedResult.unwrapErr().message });
             return;
         }
 
-        const preferences = toPreferences(preferencesDoc);
-        const isRemoved = removeFromBlacklist(preferences, ingredientId);
-
-        if (isRemoved.isErr()) {
-            res.status(400).json({ message: isRemoved.unwrapErr().message });
-            return;
+        const updateResult = await preferencesDAO.updatePreferences(userId, preferences);
+        if (updateResult.isOk()) {
+            res.status(200).end();
+        } else {
+            console.error('Error removing from blacklist via DAO:', updateResult.error);
+            res.status(500).json({ message: updateResult.error.message || 'Failed to save changes after removing from blacklist' });
         }
-
-        await PreferencesModel.findOneAndUpdate(
-            { userId },
-            fromPreferences(preferences, userId)
-        );
-        res.status(200).end();
     } catch (error) {
         console.error('Error removing ingredient from blacklist:', error);
         res.status(500).json({ message: 'Internal server error' });

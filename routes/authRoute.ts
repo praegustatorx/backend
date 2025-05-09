@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pantryDAO from "../dao/pantry.dao";
 import cookbookDao from "../dao/cookbook.dao";
+import preferencesDAO from "../dao/preferences.dao"; // Add this import
 import mongoose, { Types } from "mongoose";
 
 const router = express.Router();
@@ -25,21 +26,30 @@ router.post("/register", async (req: Request, res: Response) => {
     const userExists = await User.findOne({ email }).session(session);
     if (userExists) {
       await session.abortTransaction();
+      session.endSession();
       res.status(409).json({ message: "User already exists" });
       return;
     }
 
-    // Replace with preferencesDAO.createPreferences().id
-    const preferencesId = Types.ObjectId.createFromTime(Date.now() / 1000).toString();
+    const preferencesResult = await preferencesDAO.createPreferences(email, session);
+    if (preferencesResult.isErr()) {
+      console.warn("Error creating preferences:", preferencesResult.error);
+      await session.abortTransaction();
+      session.endSession();
+      res.status(500).json({ message: "Error creating preferences: " + preferencesResult.error.message });
+      return;
+    }
+    const preferencesId = preferencesResult.value; // This is already Types.ObjectId
 
     const pantryResult = await pantryDAO.createPantry(email, session);
     if (pantryResult.isErr()) {
       console.warn("Error creating pantry:", pantryResult.error);
       await session.abortTransaction();
+      session.endSession();
       res.status(500).json({
         message: "Error creating pantry",
       });
-      return
+      return;
     }
     const pantryId = pantryResult.unwrap();
 
@@ -47,6 +57,7 @@ router.post("/register", async (req: Request, res: Response) => {
     if (cookbookResult.isErr()) {
       console.warn("Error creating cookbook:", cookbookResult.error);
       await session.abortTransaction();
+      session.endSession();
       res.status(500).json({
         message: "Error creating cookbook",
       });
@@ -57,18 +68,19 @@ router.post("/register", async (req: Request, res: Response) => {
     await User.create([{ name, email, password, preferences: preferencesId, pantry: pantryId, cookbook: cookbookId }], { session });
 
     await session.commitTransaction();
+    session.endSession();
     res.status(201).json({
       message: "User registered successfully",
     });
   } catch (error) {
     console.warn("Registration transaction error:", error);
     await session.abortTransaction();
+    session.endSession();
     res.status(400).json({
       message: "Error registering user",
       error: error instanceof Error ? error.message : String(error),
     });
   }
-  finally { session.endSession(); }
 });
 
 router.post("/login", async (req: Request, res: Response): Promise<void> => {

@@ -8,6 +8,20 @@ const DietSchema = new Schema({
     description: { type: String, required: true }
 });
 
+const AllergySchema = new Schema({
+    name: { type: String, required: true },
+    description: { type: String, required: true }
+});
+
+const PreferencesSchema = new Schema({
+    userId: { type: String, required: true, unique: true },
+    allergies: [AllergySchema],
+    diets: [DietSchema],
+    blacklist: [String] // Changed to use String type directly instead of GenericIngredientSchema
+});
+
+const PreferencesModel = model<PreferencesDocument>('Preferences', PreferencesSchema);
+
 // Interface for the Preferences document
 export interface PreferencesDocument extends Document {
     userId: string;
@@ -17,18 +31,7 @@ export interface PreferencesDocument extends Document {
 }
 
 // Preferences Schema
-const PreferencesSchema = new Schema({
-    userId: { type: String, required: true, unique: true },
-    allergies: [{
-        type: String,
-        enum: Object.values(Allergy),
-        default: []
-    }],
-    diets: [DietSchema],
-    blacklist: [String] // Changed to use String type directly instead of GenericIngredientSchema
-});
 
-const PreferencesModel = model<PreferencesDocument>('Preferences', PreferencesSchema);
 
 export default PreferencesModel;
 
