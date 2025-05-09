@@ -1,4 +1,5 @@
 import recipeDAO from './recipe.dao';
+import mongoose, { ClientSession, Types } from 'mongoose';
 
 import { Result, Ok, Err } from 'ts-results-es';
 import CookbookModel from '../database/cookbookSchema';
@@ -7,7 +8,7 @@ import { Cookbook, createCookbook as domainCookbookCreate } from '../models/cook
 import { BaseRecipe, Recipe } from '../models/recipe';
 
 export type CookbookDAO = {
-    createCookbook: (userId: string) => Promise<Result<Cookbook, Error>>;
+    createCookbook: (userId: string,  session: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
     getCookbook: (userId: string) => Promise<Result<Cookbook, Error>>;
     createRecipe: (userId: string, recipe: BaseRecipe) => Promise<Result<Recipe, Error>>;
     removeRecipe: (userId: string, recipeId: string) => Promise<Result<void, Error>>;
@@ -24,34 +25,24 @@ export const createCookbookDAO = (): CookbookDAO => {
      * @param userId - The ID of the user to create a cookbook for
      * @returns A Result containing either the created Cookbook or an Error
      */
-    const createCookbook = async (userId: string): Promise<Result<Cookbook, Error>> => {
-        const session = await cookbookModel.db.startSession();
-        session.startTransaction();
+    const createCookbook = async (userId: string, session: ClientSession): Promise<Result<Types.ObjectId, Error>> => {
+       /*  const session = await cookbookModel.db.startSession();
+        session.startTransaction(); */
 
         try {
             const exists = await cookbookModel.exists({ userId: userId }).session(session);
             if (exists) {
-                await session.abortTransaction();
-                session.endSession();
                 return Err(new Error("A cookbook for this user already exists"));
             }
 
             // Create new cookbook directly in the database
-            await cookbookModel.create([{
+            const cookbook = await cookbookModel.create([{
                 userId: userId,
                 recipes: []
             }], { session });
 
-            /* Converting from DB model to domain model creates additional overhead because of the recipe fetching.
-              Since There are no recipes, then the domain cookbook is created separately   */
-            const created = domainCookbookCreate(userId, []);
-
-            await session.commitTransaction();
-            session.endSession();
-            return Ok(created);
+            return Ok(cookbook[0]._id);
         } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
     };

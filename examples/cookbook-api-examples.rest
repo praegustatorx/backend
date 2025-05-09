@@ -13,15 +13,6 @@ GET http://localhost:8005/cookbook/test HTTP/1.1
 
 ## Cookbook Endpoints
 
-### Create Cookbook
-
-
-# Create a cookbook for a user
-POST http://localhost:8005/cookbook/user123 HTTP/1.1
-
-###
-
-
 ### Get Cookbook
 
 

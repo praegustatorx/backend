@@ -61,21 +61,6 @@ router.get('/:userId/expired', (async (req: Request, res: Response) => {
     }
 }));
 
-// POST create pantry
-router.post('/:userId', (async (req: RequestWithUser, res: Response) => {
-    try {
-        const { userId } = req.params;
-        const result = await pantryDAO.createPantry(userId);
-
-        result.isOk()
-            ? res.status(201).json(result.unwrap())
-            : res.status(409).json({ message: result.unwrapErr().message });
-    } catch (error) {
-        console.error('Error creating pantry:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}));
-
 // PUT add ingredient to pantry
 router.put('/:userId/ingredients', async (req: Request, res: Response) => {
     try {
@@ -90,8 +75,6 @@ router.put('/:userId/ingredients', async (req: Request, res: Response) => {
         const ingredient = parseIngredient(req);
 
         const result = await pantryDAO.addIngredientToPantry(userId, ingredient);
-
-        console.warn(result);
 
         result.isOk()
             ? res.status(200).json(result.unwrap())

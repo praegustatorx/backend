@@ -12,22 +12,6 @@ router.get('/test', (req: Request, res: Response): void => {
     res.status(200).end();
 });
 
-// Cookbook endpoints
-router.post('/:userId', async (req: Request, res: Response) => {
-    try {
-        const userId = req.params.userId;
-        const result = await cookbookDAO.createCookbook(userId);
-
-        if (result.isOk()) {
-            res.status(201).json(result.unwrap());
-        } else {
-            res.status(400).json({ error: result.error.message });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
-
 router.get('/:userId', async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
@@ -127,8 +111,6 @@ router.put('/recipes/:recipeId', async (req: Request, res: Response) => {
         };
 
         const result = await recipeDAO.updateRecipe(recipeData);
-
-        console.warn('Result:', result);
 
         if (result.isOk()) {
             res.status(200).json(result.unwrap());

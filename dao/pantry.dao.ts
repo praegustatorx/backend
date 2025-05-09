@@ -1,41 +1,17 @@
-import { Result, Ok, Err, Option } from 'ts-results-es';
-import PantryModel, { PantryDocument, toPantryDto } from '../database/pantrySchema';
+import { Result, Ok, Err } from 'ts-results-es';
+import PantryModel, { toPantryDto } from '../database/pantrySchema';
 import { PantryDTO } from '../models/pantry';
 import {
     PantryIngredient,
-    Measurement,
     DbPantryIngredient, // Changed Quantity to Measurement
 } from '../models/ingredient';
-import {
-    Nutrition,
-    NutrientAmount // Imported NutrientAmount to reference its structure if needed, though not directly used in map
-} from '../models/nutritional_information';
-import {
-    toPantryIngredientDoc
-} from "../database/ingredientsSchema";
-
-const mapDomainIngredientToSchemaData = (ingredient: PantryIngredient): any => {
-    const nutritionData = ingredient.nutrition.isSome() ? {
-        calories: ingredient.nutrition.unwrap().calories, // calories is NutrientAmount
-        protein: ingredient.nutrition.unwrap().protein,   // protein is NutrientAmount
-        carbohydrates: ingredient.nutrition.unwrap().carbohydrates, // carbohydrates is NutrientAmount
-        fat: ingredient.nutrition.unwrap().fat, // fat is NutrientAmount
-        portion: ingredient.nutrition.unwrap().portion // portion is NutrientAmount
-    } : undefined;
-
-    return {
-        type: ingredient.type,
-        brand: ingredient.brand.isSome() ? ingredient.brand.unwrap() : undefined,
-        quantity: ingredient.quantity.isSome() ? ingredient.quantity.unwrap() : undefined,
-        nutrition: nutritionData,
-        expiration_date: ingredient.expiration_date.isSome() ? ingredient.expiration_date.unwrap() : undefined,
-    };
-};
+import { ClientSession, Types } from 'mongoose';
+import { toPantryIngredientDoc } from '../database/ingredientsSchema';
 
 export type PantryDAO = {
     getPantryByUserId: (userId: string) => Promise<Result<PantryDTO, Error>>;
     getExpiredIngredients: (userId: string, date: Date) => Promise<Result<PantryIngredient[], Error>>;
-    createPantry: (userId: string) => Promise<Result<PantryDTO, Error>>;
+    createPantry: (userId: string, session: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
     addIngredientToPantry: (userId: string, ingredient: Partial<PantryIngredient>) => Promise<Result<PantryDTO, Error>>;
     removeIngredientFromPantry: (userId: string, ingredientId: string) => Promise<Result<void, Error>>;
 };
@@ -70,9 +46,9 @@ const pantryDAO: PantryDAO = {
         }
     },
 
-    async createPantry(userId: string): Promise<Result<PantryDTO, Error>> {
+    async createPantry(userId: string, session: ClientSession): Promise<Result<Types.ObjectId, Error>> {
         try {
-            const existingPantry = await PantryModel.findOne({ userId });
+            const existingPantry = await PantryModel.findOne({ userId }).session(session);
             if (existingPantry) {
                 return Err(new Error('Pantry already exists for this user'));
             }
@@ -82,8 +58,12 @@ const pantryDAO: PantryDAO = {
                 ingredients: []
             };
 
-            const result = await PantryModel.create(pantryData);
-            return Ok(toPantryDto(result));
+            const createdPantries = await PantryModel.create([pantryData], { session });
+            if (!createdPantries) {
+                return Err(new Error('Failed to create pantry'));
+            }
+
+            return Ok(createdPantries[0]._id);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
