@@ -1,7 +1,7 @@
-import { 
-  createDiet, 
-  Allergy, 
-  Preferences, 
+import {
+  createDiet,
+  Allergy,
+  Preferences,
   createPreferences,
   addToBlacklist,
   removeFromBlacklist,
@@ -14,7 +14,7 @@ import {
   removeDietByName,
   hasDiet,
   getDiets
-} from '../models/preferences';
+} from '../../models/preferences';
 
 describe('Preferences Model', () => {
   describe('createDiet function', () => {
@@ -166,7 +166,7 @@ describe('Preferences Model', () => {
     test('should not add duplicate ingredients to the blacklist', () => {
       addToBlacklist(preferences, ingredient1);
       addToBlacklist(preferences, ingredient1);
-      
+
       // Check there's only one instance
       expect(preferences.blacklist.size).toBe(1);
     });
@@ -174,9 +174,9 @@ describe('Preferences Model', () => {
     test('should remove an ingredient from the blacklist', () => {
       addToBlacklist(preferences, ingredient1);
       addToBlacklist(preferences, ingredient2);
-      
+
       const result = removeFromBlacklist(preferences, ingredient1);
-      
+
       expect(result.isOk()).toBe(true);
       expect(isBlacklisted(preferences, ingredient1)).toBe(false);
       expect(isBlacklisted(preferences, ingredient2)).toBe(true);
@@ -217,7 +217,7 @@ describe('Preferences Model', () => {
       const blacklist = new Set(['tomato-123', 'onion-456']);
 
       const preferences = createPreferences(allergies, diets, blacklist);
-      
+
       expect(preferences.allergies).toEqual(allergies);
       expect(preferences.diets).toEqual(diets);
       expect(preferences.blacklist).toEqual(blacklist);
