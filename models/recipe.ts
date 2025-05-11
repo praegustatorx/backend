@@ -1,10 +1,15 @@
 import { None, Option, Some } from "ts-results-es";
-import { RecipeIngredient } from "./ingredient";
+import { RecipeIngredient, Unit } from "./ingredient";
 // TODO: Move RecipeIngredient here
 
+// TODO: Add id verification
 // TODO: Add cooking time, serving size, and dietary restrictions
 // TODO: Add instructions abstraction if needed
 export type Recipe = {
+    id: string;
+} & BaseRecipe;
+
+export type BaseRecipe = {
     name: string;
     description: Option<string>;
     ingredients: RecipeIngredient[];
@@ -12,54 +17,20 @@ export type Recipe = {
     tags: Set<Tag>;
 }
 
-const createRecipe = (
+export function createBaseRecipe(
     name: string,
-    description: Option<string>,
+    description: string | undefined,
     ingredients: RecipeIngredient[],
     instructions: string[],
-    tags: Tag[] | Set<Tag> = []
-): Recipe => {
+    tags: Tag[] | Set<Tag>
+): BaseRecipe {
     return {
-        name,
-        description,
-        ingredients,
-        instructions,
-        tags: tags instanceof Set ? tags : new Set(tags)
+        name: name,
+        description: description ? Some(description) : None,
+        ingredients: ingredients,
+        instructions: instructions,
+        tags: tags instanceof Set ? tags : new Set(tags),
     };
-};
-
-const addDescription = (recipe: Recipe, description: string) => {
-    let tmp: Option<string>;
-    if (description.length == 0) {
-        tmp = None;
-    } else {
-        tmp = Some(description)
-    }
-
-    recipe.description = tmp;
-}
-
-const removeDescription = (recipe: Recipe) => { addDescription(recipe, "") }
-
-const addTag = (recipe: Recipe, tag: Tag) => {
-    recipe.tags.add(tag);
-}
-
-const removeTag = (recipe: Recipe, tagName: string) => {
-    for (const tag of recipe.tags) {
-        if (tag.name === tagName) {
-            recipe.tags.delete(tag);
-            break;
-        }
-    }
-}
-
-export const containsTag = (recipe: Recipe, tag: Tag): boolean => {
-    return recipe.tags.has(tag);
-}
-
-export const containsTagName = (recipe: Recipe, tagName: string): boolean => {
-    return Array.from(recipe.tags).some(tag => tag.name === tagName);
 }
 
 // ----- Tags ----- 
@@ -69,12 +40,86 @@ export type Tag = {
     description: Option<string>;
 }
 
-const createTag = (
-    name: string,
-    description: Option<string>
-): Tag => {
+// ----- Recipe DTO ----- 
+// DTO for BaseRecipe with optional fields instead of Option types
+export type BaseRecipeDTO = {
+    name: string;
+    description?: string;
+    ingredients: {
+        type: string; // Changed from genericId to type
+        quantity?: {
+            amount: number;
+            unit: string;
+        };
+    }[];
+    instructions: string[];
+    tags: {
+        name: string;
+        description?: string;
+    }[];
+}
+
+// Transform BaseRecipeDTO to BaseRecipe
+export function fromDTO(dto: BaseRecipeDTO): BaseRecipe {
+    // Convert ingredients
+    const ingredients: RecipeIngredient[] = dto.ingredients.map(ing => ({
+        type: ing.type, // Changed from genericId to type
+        quantity: ing.quantity ? Some({
+            amount: ing.quantity.amount,
+            unit: ing.quantity.unit as Unit
+        }) : None
+    }));
+
+    // Convert tags
+    const tags: Tag[] = dto.tags.map(tag => ({
+        name: tag.name,
+        description: tag.description ? Some(tag.description) : None
+    }));
+
+    // Create base recipe
+    return createBaseRecipe(
+        dto.name,
+        dto.description,
+        ingredients,
+        dto.instructions,
+        tags
+    );
+}
+
+/* // Utility function to create a BaseRecipe from json data
+export function fromJSON(data: any): BaseRecipe {
+    // Validate required fields
+    if (!data.name) {
+        throw new Error('Recipe name is required');
+    }
+
+    // Process ingredients
+    const ingredients = Array.isArray(data.ingredients) ? data.ingredients.map((ing: any) => ({
+        genericId: ing.genericId,
+        quantity: ing.quantity ? Some(ing.quantity) : None
+    })) : [];
+
+    // Process instructions
+    const instructions = Array.isArray(data.instructions) ? data.instructions : [];
+
+    // Process tags
+    const tags = new Set<Tag>();
+    if (Array.isArray(data.tags)) {
+        data.tags.forEach((tag: any) => {
+            if (tag && typeof tag === 'object' && tag.name) {
+                tags.add({
+                    name: tag.name,
+                    description: tag.description ? Some(tag.description) : None
+                });
+            }
+        });
+    }
+
     return {
-        name,
-        description
+        name: data.name,
+        description: data.description ? Some(data.description) : None,
+        ingredients,
+        instructions,
+        tags
     };
-};
+} */

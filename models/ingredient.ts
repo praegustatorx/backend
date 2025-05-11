@@ -1,85 +1,94 @@
-import { None, Option } from "ts-results-es";
-import { Nutritions } from "./nutritional_information";
+import { Err, None, Ok, Option, Result, Some } from "ts-results-es";
+import { Nutrition } from "./nutritional_information";
 
 /**
- * Representing abstracted ingredient definition. 
+ * Representing abstracted ingredient type definition. 
  */
-export type GenericIngredient = {
-    id: string;
-    name: string;
-}
-
-export const CreateGenericIngredient = (id: string, name: string): GenericIngredient => {
-    return {
-        id,
-        name
-    };
-}
+export type IngredientType = string;
 
 /**
  * Representing the quantity of an ingredient.
+ * @field amount - validation should be done before creating!.
 */
-type Measurement = {
-    quantity: number;
+export type Measurement = {
+    amount: number;
     unit: Unit;
 }
 
-export const CreateMeasurement = (quantity: number, unit: Unit): Measurement => {
+export const createMeasurement = (amount: number, unit: Unit): Measurement => {
     return {
-        quantity,
+        amount,
         unit
     };
 }
 // TODO: Create a type PantryUnit, which will be type limited to unit: Unit.MILILITER | Unit.GRAM
 
-// TODO: Add more or less measurements if needed
+// TODO: Add more or less measurements if needed such as Dl or Cl
 export enum Unit {
-    MILLILITER = "milliliter",
-    LITER = "liter",
-    GRAM = "gram",
-    MILLIGRAM = "milligram",
-    KILOGRAM = "kilogram",
+    ML = "ml",
+    L = "l",
+    G = "g",
+    MG = "mg",
+    KG = "kg",
     CUP = "cup",
-    TABLESPOON = "tablespoon",
-    TEASPOON = "teaspoon",
+    TBSP = "tbsp",
+    TSP = "tsp",
     PINCH = "pinch",
 }
 
+// ----------------- Pantry Ingredient ----------------- //
+
 // TODO: keep ingredient's measurements only in mililiter and gram.
-/** 
- * Representing an ingredient in the pantry.
- * The pantry ingredient is a concrete example of a generic ingredient with a brand and additional information.
-*/
+/// This type will be used only when creating a pantry ingredient.
 export type PantryIngredient = {
-    id: string;
+    type: IngredientType;
     brand: Option<string>;
-    genericId: string;
     quantity: Option<Measurement>;
-    nutrition: Nutritions;
+    nutrition: Option<Nutrition>;
     expiration_date: Option<ExpDate>;
 }
 
-export const CreatePantryIngredient = (
-    id: string,
-    brand: Option<string> = None,
-    genericId: string,
-    quantity: Option<Measurement> = None,
-    nutrition: Nutritions,
-    expiration_date: Option<ExpDate> = None
+export const createPantryIngredient = (
+    type: IngredientType,
+    brand?: string,
+    quantity?: Measurement,
+    nutrition?: Nutrition,
+    expiration_date?: ExpDate
+): PantryIngredient => {
+    return newPantryIngredient(
+        type,
+        brand ? Some(brand) : None,
+        quantity ? Some(quantity) : None,
+        nutrition ? Some(nutrition) : None,
+        expiration_date ? Some(expiration_date) : None
+    );
+}
+
+export const newPantryIngredient = (
+    type: IngredientType,
+    brand: Option<string>,
+    quantity: Option<Measurement>,
+    nutrition: Option<Nutrition>,
+    expiration_date: Option<ExpDate>
 ): PantryIngredient => {
     return {
-        id,
+        type,
         brand,
-        genericId,
         quantity,
         nutrition,
         expiration_date
     };
 }
 
+//  ----------------- Database persisted Pantry Ingredient ----------------- //
+
+export type DbPantryIngredient = {
+    id: string;
+} & PantryIngredient;
+
 export type ExpDate = Date;
 
-export const CreateExpDate = (
+export const createExpDate = (
     year?: number,
     month?: number,
     day?: number
@@ -96,27 +105,47 @@ export const CreateExpDate = (
     return date;
 };
 
-export const isIngredientExpired = (ingredient: PantryIngredient, date: ExpDate = CreateExpDate()): boolean => {
+export const createExpDateFromMills = (mills: number): ExpDate => {
+    const date = new Date(mills);
+    date.setHours(23, 59, 59, 999); // Set to the end of the day
+    return date;
+}
+
+export const parseExpDate = (dateString?: string): Result<ExpDate, void> => {
+    if (!dateString) return Ok(createExpDate());
+
+
+    const mills = Date.parse(dateString);
+    if (isNaN(mills)) return Err(undefined); // Invalid date string
+
+    const date = new Date(mills);
+    date.setHours(23, 59, 59, 999); // Set to the end of the day
+    return Ok(date);
+}
+
+export const isIngredientExpired = (ingredient: PantryIngredient | DbPantryIngredient, date: ExpDate = createExpDate()): boolean => {
     return ingredient.expiration_date
         .map((expDate) => expDate <= date)
         .unwrapOrElse(() => false);
 }
 
+// ----------------- Recipe Ingredient ----------------- //
+
 /**
  * Representing a recipe ingredient.
- * The recipe ingredient is a concrete example of a generic ingredient with quantity.
+ * The recipe ingredient is a concrete example with quantity.
 */
 export type RecipeIngredient = {
-    genericId: string;
+    type: IngredientType;
     quantity: Option<Measurement>;
 }
 
-export const CreateRecipeIngredient = (
-    genericId: string,
+export const createRecipeIngredient = (
+    type: IngredientType,
     quantity: Option<Measurement> = None
 ): RecipeIngredient => {
     return {
-        genericId,
+        type,
         quantity
     };
 }

@@ -1,7 +1,6 @@
-import { Schema, Document, model } from 'mongoose';
+import { Schema, Document, model, Types } from 'mongoose';
 import { Preferences, Allergy, Diet, preferencesFromDTO } from '../models/preferences';
-import { GenericIngredient } from '../models/ingredient';
-import { GenericIngredientSchema } from './ingredientsSchema';
+import { IngredientType } from '../models/ingredient';
 
 // Schema for Diet
 const DietSchema = new Schema({
@@ -9,24 +8,56 @@ const DietSchema = new Schema({
     description: { type: String, required: true }
 });
 
-// Interface for the Preferences document
-export interface PreferencesDocument extends Document {
-    userId: string;
-    allergies: Allergy[];
-    diets: Diet[];
-    blacklist: GenericIngredient[];
+// Document interface for Diet
+export interface DietDocument extends Document {
+    name: string;
+    description: string;
 }
 
-// Preferences Schema
+const AllergySchema = new Schema({
+    name: {
+        type: String,
+        required: true,
+        enum: Object.values(Allergy) // Use enum validation with values from Allergy enum
+    },
+});
+
+// Document interface for Allergy
+export interface AllergyDocument extends Document {
+    name: string;
+}
+
+// Schema for a single blacklisted ingredient
+const BlacklistedIngredientSchema = new Schema({
+    value: { type: String, required: true } // Storing the IngredientType string
+});
+
+// Document interface for a single blacklisted ingredient
+export interface BlacklistedIngredientDocument extends Document {
+    value: IngredientType;
+}
+
+// Represents the plain JS object structure Mongoose accepts for creating/updating
+export interface PreferencesInputData {
+    userId: string;
+    allergies: { name: string }[]; // Changed Allergy to string, made non-optional
+    diets: Diet[]; // Made non-optional
+    blacklist: IngredientType[]; // Changed from { value: IngredientType }[]
+}
+
+// Interface for the Preferences document (instantiated Mongoose document)
+export interface PreferencesDocument extends Document {
+    userId: string;
+    allergies: Types.DocumentArray<AllergyDocument>;
+    diets: Types.DocumentArray<DietDocument>;
+    blacklist: Types.Array<IngredientType>; // Changed from Types.DocumentArray<BlacklistedIngredientDocument>
+}
+
 const PreferencesSchema = new Schema({
     userId: { type: String, required: true, unique: true },
-    allergies: [{
-        type: String,
-        enum: Object.values(Allergy),
-        default: []
-    }],
+    allergies: [AllergySchema],
     diets: [DietSchema],
-    blacklist: [GenericIngredientSchema]
+    blacklist: [String] // Updated to store strings directly
 });
 
 const PreferencesModel = model<PreferencesDocument>('Preferences', PreferencesSchema);
@@ -35,17 +66,21 @@ export default PreferencesModel;
 
 // Utility functions to convert between Mongoose model and domain model
 export const toPreferences = (doc: PreferencesDocument): Preferences => {
-    const allergies = doc.allergies as Allergy[];
-    const diets = doc.diets as Diet[];
-    const blacklist = doc.blacklist as GenericIngredient[];
-    return preferencesFromDTO({ allergies, diets, blacklist });
+    const diets = doc.diets.map(d => ({ name: d.name, description: d.description }));
+    // doc.blacklist is now Types.Array<IngredientType>, convert to plain array
+    const blacklist = doc.blacklist ? [...doc.blacklist] : [];
+    return preferencesFromDTO({
+        allergies: doc.allergies.map(a => a.name as Allergy), // Inlined mapping and casting
+        diets,
+        blacklist
+    });
 };
 
-export const fromPreferences = (preferences: Preferences, userId: string): Partial<PreferencesDocument> => {
+export const fromPreferences = (preferences: Preferences, userId: string): PreferencesInputData => {
     return {
         userId,
-        allergies: [...preferences.allergies],
+        allergies: [...preferences.allergies].map(a => ({ name: a as string })), // Cast Allergy enum to string
         diets: [...preferences.diets],
-        blacklist: [...preferences.blacklist]
+        blacklist: [...preferences.blacklist] // Changed from mapping to { value: b }
     };
 };

@@ -1,18 +1,18 @@
 import { Option, Err, Ok, Result, None, Some } from "ts-results-es";
-import { GenericIngredient } from "./ingredient";
+import { IngredientType } from "./ingredient";
 
 // ----- Preferences -----
 // Sets are used to avoid duplicates, reducing checking logic in the functions
 export type Preferences = {
   allergies: Set<Allergy>;
   diets: Set<Diet>;
-  blacklist: Set<GenericIngredient>;
+  blacklist: Set<IngredientType>;
 };
 
 export const createPreferences = (
-  allergies: Set<Allergy> = new Set(), 
-  diets: Set<Diet> = new Set(), 
-  blacklist: Set<GenericIngredient> = new Set()
+  allergies: Set<Allergy> = new Set(),
+  diets: Set<Diet> = new Set(),
+  blacklist: Set<IngredientType> = new Set()
 ): Preferences => {
   return { allergies, diets, blacklist };
 };
@@ -22,7 +22,7 @@ export const createPreferences = (
 type PreferencesDTO = {
   allergies: Allergy[];
   diets: Diet[];
-  blacklist: GenericIngredient[];
+  blacklist: IngredientType[];
 };
 
 export const preferencesIntoDTO = (preferences: Preferences): PreferencesDTO => {
@@ -35,8 +35,8 @@ export const preferencesIntoDTO = (preferences: Preferences): PreferencesDTO => 
 
 export const preferencesFromDTO = (dto: PreferencesDTO): Preferences => {
   return createPreferences(
-    new Set(dto.allergies), 
-    new Set(dto.diets), 
+    new Set(dto.allergies),
+    new Set(dto.diets),
     new Set(dto.blacklist)
   );
 };
@@ -131,31 +131,19 @@ export const getDiets = (preferences: Preferences): Diet[] => {
 };
 
 // ----- Preferences Functions for Blacklist -----
-export const addToBlacklist = (preferences: Preferences, ingredient: GenericIngredient): void => {
+export const addToBlacklist = (preferences: Preferences, ingredient: IngredientType): void => {
   // Sets automatically handle duplicates
   preferences.blacklist.add(ingredient);
 }
 
 export const removeFromBlacklist = (preferences: Preferences, ingredientId: string): Result<void, Error> => {
   if (preferences.blacklist.size === 0) {
-    return Err(new Error('No blacklist found.'));
+    return Err(new Error('Blacklist is empty.'));
   }
 
-  for (const item of preferences.blacklist) {
-    if (item.id === ingredientId) {
-      preferences.blacklist.delete(item);
-      return Ok(undefined);
-    }
-  }
-
-  return Err(new Error('Ingredient not found in blacklist.'));
+  return preferences.blacklist.delete(ingredientId) ? Ok(undefined) : Err(new Error('Ingredient not found in blacklist.'));
 }
 
 export const isBlacklisted = (preferences: Preferences, ingredientId: string): boolean => {
-  for (const item of preferences.blacklist) {
-    if (item.id === ingredientId) {
-      return true;
-    }
-  }
-  return false;
+  return preferences.blacklist.has(ingredientId);
 };

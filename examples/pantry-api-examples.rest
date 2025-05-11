@@ -1,0 +1,85 @@
+# Pantry API Examples
+
+// This document contains example requests for the pantry API endpoints.
+
+###
+## Test Endpoint
+
+# Test if the API is running
+GET http://localhost:8005/pantry/test HTTP/1.1
+
+### OR with curl:
+# curl -X GET http://localhost:8005/pantry/test
+
+###
+## Get User's Pantry
+
+# Get a user's pantry
+GET http://localhost:8005/pantry/bebo456 HTTP/1.1
+
+### OR with curl:
+# curl -X GET http://localhost:8005/pantry/user123
+
+###
+## Get Expired Ingredients
+
+# Get expired ingredients for a user (uses current date by default)
+GET http://localhost:8005/pantry/user123/expired HTTP/1.1
+
+### OR with curl:
+# curl -X GET http://localhost:8005/pantry/user123/expired
+
+# Get expired ingredients for a user with a specific date
+GET http://localhost:8005/pantry/user123/expired?date=2023-12-31 HTTP/1.1
+
+### OR with curl:
+# curl -X GET "http://localhost:8005/pantry/user123/expired?date=2023-12-31"
+
+###
+## Add Ingredient to Pantry
+
+# Add an ingredient to a user's pantry
+PUT http://localhost:8005/pantry/bebo456/ingredients HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "Milk",
+  "brand": "Organic Valley",
+  "quantity": { "amount": 1, "unit": "liter" },
+  "nutrition": {
+    "calories": 150,
+    "protein": 8,
+    "carbohydrates": 12,
+    "fat": 8
+  },
+  "expiryDate": "2024-07-15"
+}
+
+### OR with curl:
+# curl -X PUT http://localhost:8005/pantry/user123/ingredients \
+#   -H "Content-Type: application/json" \
+#   -d '{"type":"Milk","brand":"Organic Valley","quantity":{"amount":1,"unit":"liter"},"nutrition":{"calories":150,"protein":8,"carbohydrates":12,"fat":8},"expiryDate":"2024-07-15"}'
+
+# Add an ingredient with minimal information
+PUT http://localhost:8005/pantry/bebo456/ingredients HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "Apple",
+  "expiryDate": "2024-07-01"
+}
+
+### OR with curl:
+# curl -X PUT http://localhost:8005/pantry/user123/ingredients \
+#   -H "Content-Type: application/json" \
+#   -d '{"type":"Apple", "expiryDate":"2024-07-01"}'
+
+
+###
+## Remove Ingredient from Pantry
+
+# Remove an ingredient from a user's pantry
+DELETE http://localhost:8005/pantry/bebo456/ingredients/681dc5bec4a9cc4b1282d3dc HTTP/1.1
+
+### OR with curl:
+# curl -X DELETE http://localhost:8005/pantry/bebo456/ingredients/681d4bf72ab6dd49c52a8923
