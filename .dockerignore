@@ -1,0 +1,8 @@
+node_modules
+dist
+*.log
+.gitignore
+.github
+testing_utils
+dist
+__test__
