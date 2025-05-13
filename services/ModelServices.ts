@@ -18,7 +18,7 @@ export const predictProduct = async (file: Express.Multer.File): Promise<Predict
     formData.append('file', fs.createReadStream(file.path), file.originalname);
 
     try {
-        const response = await axios.post<PredictResponse>('http://127.0.0.1:8000/predict/', formData, {
+        const response = await axios.post<PredictResponse>('http://fastapi-app:8000/predict/', formData, {
             headers: {
                 ...formData.getHeaders()
             }
@@ -45,7 +45,7 @@ export const ocrProduct = async (file: Express.Multer.File): Promise<OcrResponse
     formData.append('file', fs.createReadStream(file.path), file.originalname);
 
     try {
-        const response = await axios.post<OcrResponse>('http://127.0.0.1:8000/ocr/', formData, {
+        const response = await axios.post<OcrResponse>('http://fastapi-app:8000/ocr/', formData, {
             headers: {
                 ...formData.getHeaders()
             }
