@@ -38,6 +38,15 @@ export const AskGemini = async (chatId: string, message: string): Promise<Result
     try {
         const result = (await chat.sendMessage({ message: message })).text;
         const response = result ? Some(result) : None;
+        /* chat.getHistory().forEach((message) => {
+            let content;
+            if (message.parts) {
+                content = message.parts.map((part) => part.text).join(' \/ ');
+            }
+            let role = message.role;
+            console.warn(`Role: ${role}, Content: ${content}`);
+        }
+        ); */
         return Ok(response);
     } catch (error) {
         return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
