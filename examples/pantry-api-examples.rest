@@ -45,14 +45,14 @@ Content-Type: application/json
 {
   "type": "Milk",
   "brand": "Organic Valley",
-  "quantity": { "amount": 1, "unit": "liter" },
+  "quantity": { "amount": 1, "unit": "l" },
   "nutrition": {
     "calories": 150,
     "protein": 8,
     "carbohydrates": 12,
     "fat": 8
   },
-  "expiryDate": "2024-07-15"
+  "expiryDate": "2026-07-15"
 }
 
 ### OR with curl:
@@ -81,15 +81,15 @@ Content-Type: application/json
 {
   "type": "Chicken Breast",
   "brand": "Local Butcher",
-  "quantity": { "amount": 2, "unit": "pieces" },
+  "quantity": { "amount": 500, "unit": "g" },
   "nutrition": {
     "portion": { "amount": 100, "unit": "g" },
-    "calories": { "amount": 165, "unit": "kcal"},
-    "protein": { "amount": 31, "unit": "g"},
-    "carbohydrates": { "amount": 0, "unit": "g"},
-    "fat": { "amount": 3.6, "unit": "g"}
+    "calories": 165,
+    "protein": 11,
+    "carbohydrates": 4,
+    "fat": 3.6
   },
-  "expiryDate": "2025-05-18"
+  "expiryDate": "2027-05-18"
 }
 
 ### OR with curl:
