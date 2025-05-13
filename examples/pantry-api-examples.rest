@@ -74,6 +74,28 @@ Content-Type: application/json
 #   -H "Content-Type: application/json" \
 #   -d '{"type":"Apple", "expiryDate":"2024-07-01"}'
 
+# Add an ingredient with portion information
+PUT http://localhost:8005/pantry/bebo456/ingredients HTTP/1.1
+Content-Type: application/json
+
+{
+  "type": "Chicken Breast",
+  "brand": "Local Butcher",
+  "quantity": { "amount": 2, "unit": "pieces" },
+  "nutrition": {
+    "portion": { "amount": 100, "unit": "g" },
+    "calories": { "amount": 165, "unit": "kcal"},
+    "protein": { "amount": 31, "unit": "g"},
+    "carbohydrates": { "amount": 0, "unit": "g"},
+    "fat": { "amount": 3.6, "unit": "g"}
+  },
+  "expiryDate": "2025-05-18"
+}
+
+### OR with curl:
+# curl -X PUT http://localhost:8005/pantry/user123/ingredients \
+#   -H "Content-Type: application/json" \
+#   -d '{"type":"Chicken Breast","brand":"Local Butcher","quantity":{"amount":2,"unit":"pieces"},"nutrition":{"portion":{"amount":100,"unit":"g"},"calories":{"amount":165,"unit":"kcal"},"protein":{"amount":31,"unit":"g"},"carbohydrates":{"amount":0,"unit":"g"},"fat":{"amount":3.6,"unit":"g"}},"expiryDate":"2025-05-18"}'
 
 ###
 ## Remove Ingredient from Pantry

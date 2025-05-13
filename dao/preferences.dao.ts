@@ -6,7 +6,7 @@ import { IngredientType } from '../models/ingredient'; // Assuming IngredientTyp
 
 export type PreferencesDAO = {
     getPreferencesByUserId: (userId: string) => Promise<Result<Preferences, Error>>;
-    createPreferences: (userId: string, session?: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
+    createPreferences: (userId: string, session?: ClientSession) => Promise<Result<void, Error>>;
     updatePreferences: (userId: string, preferences: Partial<Preferences>) => Promise<Result<Preferences, Error>>;
     addAllergy: (userId: string, allergy: Allergy) => Promise<Result<void, Error>>;
     removeAllergy: (userId: string, allergy: Allergy) => Promise<Result<void, Error>>;
@@ -29,7 +29,7 @@ const preferencesDAO: PreferencesDAO = {
         }
     },
 
-    async createPreferences(userId: string, session?: ClientSession): Promise<Result<Types.ObjectId, Error>> {
+    async createPreferences(userId: string, session?: ClientSession): Promise<Result<void, Error>> {
         try {
             const existingPreferences = await PreferencesModel.findOne({ userId }).session(session || null);
             if (existingPreferences) {
@@ -42,7 +42,7 @@ const preferencesDAO: PreferencesDAO = {
             if (!createdDocs || createdDocs.length === 0) {
                 return Err(new Error('Failed to create preferences'));
             }
-            return Ok(createdDocs[0]._id as Types.ObjectId);
+            return Ok(undefined);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }

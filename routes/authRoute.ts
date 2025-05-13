@@ -39,7 +39,6 @@ router.post("/register", async (req: Request, res: Response) => {
       res.status(500).json({ message: "Error creating preferences: " + preferencesResult.error.message });
       return;
     }
-    const preferencesId = preferencesResult.value; // This is already Types.ObjectId
 
     const pantryResult = await pantryDAO.createPantry(email, session);
     if (pantryResult.isErr()) {
@@ -51,7 +50,6 @@ router.post("/register", async (req: Request, res: Response) => {
       });
       return;
     }
-    const pantryId = pantryResult.unwrap();
 
     const cookbookResult = await cookbookDao.createCookbook(email, session);
     if (cookbookResult.isErr()) {
@@ -63,9 +61,8 @@ router.post("/register", async (req: Request, res: Response) => {
       });
       return;
     }
-    const cookbookId = cookbookResult.unwrap();
 
-    await User.create([{ name, email, password, preferences: preferencesId, pantry: pantryId, cookbook: cookbookId }], { session });
+    await User.create([{ name, email, password}], { session });
 
     await session.commitTransaction();
     session.endSession();

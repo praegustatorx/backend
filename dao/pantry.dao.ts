@@ -11,7 +11,7 @@ import { toPantryIngredientDoc } from '../database/ingredientsSchema';
 export type PantryDAO = {
     getPantryByUserId: (userId: string) => Promise<Result<PantryDTO, Error>>;
     getExpiredIngredients: (userId: string, date: Date) => Promise<Result<PantryIngredient[], Error>>;
-    createPantry: (userId: string, session: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
+    createPantry: (userId: string, session: ClientSession) => Promise<Result<void, Error>>;
     addIngredientToPantry: (userId: string, ingredient: Partial<PantryIngredient>) => Promise<Result<PantryDTO, Error>>;
     removeIngredientFromPantry: (userId: string, ingredientId: string) => Promise<Result<void, Error>>;
 };
@@ -46,7 +46,7 @@ const pantryDAO: PantryDAO = {
         }
     },
 
-    async createPantry(userId: string, session: ClientSession): Promise<Result<Types.ObjectId, Error>> {
+    async createPantry(userId: string, session: ClientSession): Promise<Result<void, Error>> {
         try {
             const existingPantry = await PantryModel.findOne({ userId }).session(session);
             if (existingPantry) {
@@ -63,7 +63,7 @@ const pantryDAO: PantryDAO = {
                 return Err(new Error('Failed to create pantry'));
             }
 
-            return Ok(createdPantries[0]._id);
+            return Ok(undefined);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }

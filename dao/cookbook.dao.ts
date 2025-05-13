@@ -8,7 +8,7 @@ import { Cookbook, createCookbook as domainCookbookCreate } from '../models/cook
 import { BaseRecipe, Recipe } from '../models/recipe';
 
 export type CookbookDAO = {
-    createCookbook: (userId: string,  session: ClientSession) => Promise<Result<Types.ObjectId, Error>>;
+    createCookbook: (userId: string,  session: ClientSession) => Promise<Result<void, Error>>;
     getCookbook: (userId: string) => Promise<Result<Cookbook, Error>>;
     createRecipe: (userId: string, recipe: BaseRecipe) => Promise<Result<Recipe, Error>>;
     removeRecipe: (userId: string, recipeId: string) => Promise<Result<void, Error>>;
@@ -25,7 +25,7 @@ export const createCookbookDAO = (): CookbookDAO => {
      * @param userId - The ID of the user to create a cookbook for
      * @returns A Result containing either the created Cookbook or an Error
      */
-    const createCookbook = async (userId: string, session: ClientSession): Promise<Result<Types.ObjectId, Error>> => {
+    const createCookbook = async (userId: string, session: ClientSession): Promise<Result<void, Error>> => {
        /*  const session = await cookbookModel.db.startSession();
         session.startTransaction(); */
 
@@ -41,7 +41,7 @@ export const createCookbookDAO = (): CookbookDAO => {
                 recipes: []
             }], { session });
 
-            return Ok(cookbook[0]._id);
+            return Ok(undefined);
         } catch (error) {
             return Err(error instanceof Error ? error : new Error(String(error)));
         }
