@@ -12,13 +12,15 @@ interface OcrResponse {
     extracted_text: string;
 }
 
+const pyBackUrl = process.env.PY_URL
+
 export const predictProduct = async (file: Express.Multer.File): Promise<PredictResponse | undefined> => {
     console.warn(`Calling Python API for predict with file: ${file.originalname}`);
     const formData = new FormData();
     formData.append('file', fs.createReadStream(file.path), file.originalname);
 
     try {
-        const response = await axios.post<PredictResponse>('http://fastapi-app:8000/predict/', formData, {
+        const response = await axios.post<PredictResponse>(pyBackUrl + 'predict/', formData, {
             headers: {
                 ...formData.getHeaders()
             }
@@ -45,7 +47,7 @@ export const ocrProduct = async (file: Express.Multer.File): Promise<OcrResponse
     formData.append('file', fs.createReadStream(file.path), file.originalname);
 
     try {
-        const response = await axios.post<OcrResponse>('http://fastapi-app:8000/ocr/', formData, {
+        const response = await axios.post<OcrResponse>(pyBackUrl + 'ocr/', formData, {
             headers: {
                 ...formData.getHeaders()
             }

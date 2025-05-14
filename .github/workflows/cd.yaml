@@ -1,0 +1,64 @@
+name: Continuous Deployment-GoogleCloudRun
+
+on:
+  push:
+    branches: [  "AddCD","release/**" ] 
+  pull_request:
+    branches: [  "AddCD","release/**" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Extract commit SHA
+        run: echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        id: build-push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{secrets.IMAGE_NAME}}:${{ env.COMMIT_SHA }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{secrets.IMAGE_NAME}}:latest 
+
+      - name: Image details
+        if: steps.build-push.outputs.digest
+        run: echo "Pushed image ${{ steps.build-push.outputs.digest }}"
+
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+  
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ts-backend
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{secrets.IMAGE_NAME}}:latest
+          region: europe-north2
+          env_vars: |
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_SECRET_KEY=${{ secrets.CLOUDINARY_SECRET_KEY }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            PY_URL=${{ secrets.PY_URL }}        
