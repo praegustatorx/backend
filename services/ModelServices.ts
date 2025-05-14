@@ -19,7 +19,7 @@ export const predictProduct = async (file: Express.Multer.File): Promise<Result<
     formData.append('file', fs.createReadStream(file.path), file.originalname);
 
     try {
-        const response = await axios.post<PredictResponse>('http://localhost:8000/predict/', formData, {
+        const response = await axios.post<PredictResponse>('http://fastapi-app:8000/predict/', formData, {
             headers: {
                 ...formData.getHeaders()
             }
