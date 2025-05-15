@@ -13,16 +13,16 @@ router.post('/predict', upload.single('file'), async (req: Request, res: Respons
         }
         const result = await predictProduct(req.file);
         if (result.isOk()) {
-            const a = await FetchNutrientInfo(result.unwrap().predicted_class);
-            console.log('Nutrient info:', a);
+            const nutrientsResult = await FetchNutrientInfo(result.unwrap().predicted_class);
+            console.log('Nutrient info:', nutrientsResult);
 
-            if (a.isOk()) {
-                const inner = a.unwrap();
+            if (nutrientsResult.isOk()) {
+                const inner = nutrientsResult.unwrap();
                 res.status(200).send({ type: inner.type, info: inner.nutrition, confidence: result.unwrap().confidence });
                 return;
             }
             else {
-                console.error('Error fetching nutrient info:', a.unwrapErr().message);
+                console.error('Error fetching nutrient info:', nutrientsResult.unwrapErr().message);
                 res.status(500).send({ message: 'Error fetching nutrient info' });
                 return;
             }
