@@ -27,7 +27,7 @@ const GetChat = (chatId: string): Chat => {
     if (ai.chats.has(chatId)) {
         chat = ai.chats.get(chatId)!;
     } else {
-        chat = ai.genai.chats.create({ model: model_name });
+        chat = ai.genai.chats.create({ model: model_name, config: { systemInstruction: process.env.SYSTEM_INSTRUCTIONS, temperature: 0.8 } });
         ai.chats.set(chatId, chat);
     }
     return chat;
