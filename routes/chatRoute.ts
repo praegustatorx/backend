@@ -12,8 +12,7 @@ router.post("/", async (req: Request, res: Response) => {
     return;
   }
   const inner = response.unwrap();
-  const result = inner.isSome() ? inner.unwrap() : "No response received.";
-  res.status(200).send({ message: result });
+  res.status(200).send({ message: inner });
 });
 
 router.post("/stream", async (req: Request, res: Response) => {

@@ -1,8 +1,10 @@
-import { Chat, GenerateContentResponse, GoogleGenAI } from '@google/genai';
+import { Chat, CreateChatParameters, GenerateContentConfig, GenerateContentResponse, GoogleGenAI } from '@google/genai';
 import { Result, Ok, Err, Option, Some, None } from 'ts-results-es';
 import { PantryIngredient } from '../../models/ingredient';
 import { createNutrition } from '../../models/nutritional_information';
 import { raw } from 'express';
+import { ChatResponse } from '../../models/chat';
+import { BaseRecipe } from '../../models/recipe';
 // import { BaseChatbot } from '..';
 
 export type Gemini = {
@@ -20,6 +22,13 @@ export const CreateGemini = (apiKey: string): Gemini => {
 
 const ai = CreateGemini(process.env.GEMINI_API_KEY!);
 const model_name = 'gemini-2.0-flash';
+const config: GenerateContentConfig = {
+    responseMimeType: "text/plain",
+    systemInstruction: process.env.SYSTEM_INSTRUCTIONS,
+    temperature: 0.8,
+}
+const parameters: CreateChatParameters = { model: model_name, config };
+
 
 // TODO: the model should be an input parameter
 const GetChat = (chatId: string): Chat => {
@@ -27,27 +36,37 @@ const GetChat = (chatId: string): Chat => {
     if (ai.chats.has(chatId)) {
         chat = ai.chats.get(chatId)!;
     } else {
-        chat = ai.genai.chats.create({ model: model_name, config: { systemInstruction: process.env.SYSTEM_INSTRUCTIONS, temperature: 0.8 } });
+        chat = ai.genai.chats.create(parameters);
         ai.chats.set(chatId, chat);
     }
     return chat;
 }
 
-export const AskGemini = async (chatId: string, message: string): Promise<Result<Option<string>, Error>> => {
+export const AskGemini = async (chatId: string, message: string): Promise<Result<ChatResponse, Error>> => {
     const chat = GetChat(chatId);
+
     try {
-        const result = (await chat.sendMessage({ message: message })).text;
-        const response = result ? Some(result) : None;
-        /* chat.getHistory().forEach((message) => {
-            let content;
-            if (message.parts) {
-                content = message.parts.map((part) => part.text).join(' \/ ');
+        let result = (await chat.sendMessage({ message: message })).text;
+
+        if (!result) return Err(new Error("No result from Gemini API"));
+
+        let value: ChatResponse;
+        // Extract JSON content between ```json and ``` if present
+        if (result.startsWith("```json")) {
+            const startIdx = result.indexOf("```json") + 7;
+            const endIdx = result.indexOf("```", startIdx);
+            if (endIdx > startIdx) {
+                result = result.substring(startIdx, endIdx).trim();
+            } else {
+                result = result.substring(startIdx).trim();
             }
-            let role = message.role;
-            console.warn(`Role: ${role}, Content: ${content}`);
+            const recipes: BaseRecipe[] = JSON.parse(result);
+            value = recipes;
+            // console.log("Parsed recipes: ", recipes, "----");
+        } else {
+            value = result;
         }
-        ); */
-        return Ok(response);
+        return Ok(value);
     } catch (error) {
         return Err(error instanceof Error ? error : new Error("Unknown error calling Gemini API"));
     }
@@ -73,6 +92,7 @@ export const FetchNutrientInfo = async (ingredient: string): Promise<Result<Gene
                 systemInstruction: "Provide a nutritional information about the ingredient provided. Include the following fields in numbers per 100 grams: calories, protein, fat, carbohydrates. The structure should be: {\"calories\": c, \"protein\": p, \"fat\": f, \"carbohydrates\": k} If the ingredient is not found, return an empty JSON object {}.",
             },
         })).text;
+
 
         if (!result) return Err(new Error("No result from Gemini API"));
 

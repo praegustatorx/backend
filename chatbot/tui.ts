@@ -32,7 +32,7 @@ const createNormalPrintHandler = (): PrintHandler => {
     return async (chatId: string, promptText: string) => {
         const response = await AskGemini(chatId, promptText);
         if (response.isOk()) {
-            printResponse(response.unwrap());
+            console.log(response.unwrap());
         } else {
             console.error(`Error: ${response.unwrapErr().message}`);
         }
@@ -81,10 +81,6 @@ const printStream = async (stream: AsyncGenerator<GenerateContentResponse>) => {
         process.stdout.write(next.text ?? "");
     }
     console.log(); // Add newline after stream completes
-}
-
-const printResponse = (response: Option<string>) => {
-    response.isSome() ? console.log(response.unwrap()) : console.log("No response received.");
 }
 
 export const askNutrientInfo = async () => {
