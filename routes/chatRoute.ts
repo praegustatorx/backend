@@ -12,7 +12,8 @@ router.post("/", async (req: Request, res: Response) => {
     return;
   }
   const inner = response.unwrap();
-  res.status(200).send({ message: inner });
+  const value = typeof inner === 'string' ? { text: inner } : { json: inner };
+  res.status(200).send(value);
 });
 
 router.post("/stream", async (req: Request, res: Response) => {
