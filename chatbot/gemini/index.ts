@@ -33,7 +33,6 @@ let parameters: CreateChatParameters = { model: model_name, config };
 
 const user_date = async (user_id: string): Promise<string> => {
     const preferences = await preferencesDAO.getPreferencesByUserId(user_id);
-    console.log("User preferences: ", preferences);
     return preferences.isOk() ? JSON.stringify(preferencesIntoDTO(preferences.unwrap())) : "";
 
 }
@@ -45,7 +44,13 @@ const GetChat = async (chatId: string): Promise<Chat> => {
     if (ai.chats.has(chatId)) {
         chat = ai.chats.get(chatId)!;
     } else {
-        chat = ai.genai.chats.create(parameters);
+        let params = structuredClone(parameters);
+        if (params.config) {
+            const userPreferences = await user_date(chatId);
+            (params.config.systemInstruction as PartUnion[]).push(userPreferences);
+        }
+        // const params = parameters.config?.systemInstruction;
+        chat = ai.genai.chats.create(params);
 
         ai.chats.set(chatId, chat);
     }
