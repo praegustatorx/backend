@@ -40,7 +40,7 @@ export interface BlacklistedIngredientDocument extends Document {
 // Represents the plain JS object structure Mongoose accepts for creating/updating
 export interface PreferencesInputData {
     userId: string;
-    allergies: { name: string }[]; // Changed Allergy to string, made non-optional
+    allergies: string[]; // Changed Allergy to string, made non-optional
     diets: Diet[]; // Made non-optional
     blacklist: IngredientType[]; // Changed from { value: IngredientType }[]
 }
@@ -69,8 +69,10 @@ export const toPreferences = (doc: PreferencesDocument): Preferences => {
     const diets = doc.diets.map(d => ({ name: d.name, description: d.description }));
     // doc.blacklist is now Types.Array<IngredientType>, convert to plain array
     const blacklist = doc.blacklist ? [...doc.blacklist] : [];
+
+    const allergies = doc.allergies.map(a => a.name as Allergy); // Cast to Allergy enum
     return preferencesFromDTO({
-        allergies: doc.allergies.map(a => a.name as Allergy), // Inlined mapping and casting
+        allergies,
         diets,
         blacklist
     });
@@ -79,7 +81,7 @@ export const toPreferences = (doc: PreferencesDocument): Preferences => {
 export const fromPreferences = (preferences: Preferences, userId: string): PreferencesInputData => {
     return {
         userId,
-        allergies: [...preferences.allergies].map(a => ({ name: a as string })), // Cast Allergy enum to string
+        allergies: [...preferences.allergies],
         diets: [...preferences.diets],
         blacklist: [...preferences.blacklist] // Changed from mapping to { value: b }
     };

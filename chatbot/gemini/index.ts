@@ -1,10 +1,12 @@
-import { Chat, CreateChatParameters, GenerateContentConfig, GenerateContentResponse, GoogleGenAI } from '@google/genai';
+import { Chat, CreateChatParameters, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, PartUnion } from '@google/genai';
 import { Result, Ok, Err, Option, Some, None } from 'ts-results-es';
 import { PantryIngredient } from '../../models/ingredient';
 import { createNutrition } from '../../models/nutritional_information';
 import { raw } from 'express';
 import { ChatResponse } from '../../models/chat';
 import { BaseRecipe } from '../../models/recipe';
+import preferencesDAO from '../../dao/preferences.dao';
+import { preferencesIntoDTO } from '../../models/preferences';
 // import { BaseChatbot } from '..';
 
 export type Gemini = {
@@ -22,28 +24,36 @@ export const CreateGemini = (apiKey: string): Gemini => {
 
 const ai = CreateGemini(process.env.GEMINI_API_KEY!);
 const model_name = 'gemini-2.0-flash';
-const config: GenerateContentConfig = {
+let config: GenerateContentConfig = {
     responseMimeType: "text/plain",
-    systemInstruction: process.env.SYSTEM_INSTRUCTIONS,
+    systemInstruction: process.env.SYSTEM_INSTRUCTIONS ? [process.env.SYSTEM_INSTRUCTIONS] : [],
     temperature: 0.8,
 }
-const parameters: CreateChatParameters = { model: model_name, config };
+let parameters: CreateChatParameters = { model: model_name, config };
+
+const user_date = async (user_id: string): Promise<string> => {
+    const preferences = await preferencesDAO.getPreferencesByUserId(user_id);
+    console.log("User preferences: ", preferences);
+    return preferences.isOk() ? JSON.stringify(preferencesIntoDTO(preferences.unwrap())) : "";
+
+}
 
 
 // TODO: the model should be an input parameter
-const GetChat = (chatId: string): Chat => {
+const GetChat = async (chatId: string): Promise<Chat> => {
     let chat: Chat;
     if (ai.chats.has(chatId)) {
         chat = ai.chats.get(chatId)!;
     } else {
         chat = ai.genai.chats.create(parameters);
+
         ai.chats.set(chatId, chat);
     }
     return chat;
 }
 
 export const AskGemini = async (chatId: string, message: string): Promise<Result<ChatResponse, Error>> => {
-    const chat = GetChat(chatId);
+    const chat = await GetChat(chatId);
 
     try {
         let result = (await chat.sendMessage({ message: message })).text;
@@ -73,7 +83,7 @@ export const AskGemini = async (chatId: string, message: string): Promise<Result
 };
 
 export const AskGeminiStream = async (chatId: string, message: string): Promise<Result<AsyncGenerator<GenerateContentResponse>, Error>> => {
-    const chat = GetChat(chatId);
+    const chat = await GetChat(chatId);
     try {
         const stream = await chat.sendMessageStream({ message: message });
         return stream ? Ok(stream) : Err(new Error("Stream is undefined"));
