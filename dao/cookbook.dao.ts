@@ -1,5 +1,5 @@
 import recipeDAO from './recipe.dao';
-import mongoose, { ClientSession, Types } from 'mongoose';
+import { ClientSession } from 'mongoose';
 
 import { Result, Ok, Err } from 'ts-results-es';
 import CookbookModel from '../database/cookbookSchema';
@@ -26,9 +26,6 @@ export const createCookbookDAO = (): CookbookDAO => {
      * @returns A Result containing either the created Cookbook or an Error
      */
     const createCookbook = async (userId: string, session: ClientSession): Promise<Result<void, Error>> => {
-       /*  const session = await cookbookModel.db.startSession();
-        session.startTransaction(); */
-
         try {
             const exists = await cookbookModel.exists({ userId: userId }).session(session);
             if (exists) {
@@ -36,7 +33,7 @@ export const createCookbookDAO = (): CookbookDAO => {
             }
 
             // Create new cookbook directly in the database
-            const cookbook = await cookbookModel.create([{
+            await cookbookModel.create([{
                 userId: userId,
                 recipes: []
             }], { session });

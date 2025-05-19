@@ -34,9 +34,6 @@ export const newNutrition = (
   return { portion, calories, protein, fat, carbohydrates };
 };
 
-/**
- * Nutritional Amount per Portion
- */
 export type NutrientAmount = {
   amount: number;
   unit: NutrientUnit;

@@ -1,7 +1,4 @@
 import { Schema, Document, model, Types } from 'mongoose';
-import { Cookbook, createCookbook } from '../models/cookbook';
-import RecipeModel, { toRecipe } from './recipeSchema';
-import { Recipe } from '../models/recipe';
 
 // Interface for Cookbook document
 export interface CookbookDocument extends Document {

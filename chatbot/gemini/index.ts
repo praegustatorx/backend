@@ -1,8 +1,7 @@
 import { Chat, CreateChatParameters, GenerateContentConfig, GenerateContentResponse, GoogleGenAI, PartUnion } from '@google/genai';
-import { Result, Ok, Err, Option, Some, None } from 'ts-results-es';
+import { Result, Ok, Err, Some } from 'ts-results-es';
 import { PantryIngredient } from '../../models/ingredient';
 import { createNutrition } from '../../models/nutritional_information';
-import { raw } from 'express';
 import { ChatResponse } from '../../models/chat';
 import { BaseRecipe } from '../../models/recipe';
 import preferencesDAO from '../../dao/preferences.dao';

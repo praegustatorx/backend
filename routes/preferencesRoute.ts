@@ -1,15 +1,7 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import {
-    Preferences,
     Allergy,
     createDiet,
-    addToBlacklist,
-    removeFromBlacklist,
-    addAllergy,
-    removeAllergy,
-    addDiet,
-    removeDietByName,
-    preferencesFromDTO,
     preferencesIntoDTO,
 } from "../models/preferences";
 import { IngredientType } from "../models/ingredient";
@@ -18,7 +10,7 @@ import preferencesDAO from '../dao/preferences.dao'; // Import the DAO
 const router = express.Router();
 
 // GET test
-router.get("/test", (req: Request, res: Response): void => {
+router.get("/test", (_req: Request, res: Response): void => {
     console.log("Hello World");
     res.status(200).end();
 });

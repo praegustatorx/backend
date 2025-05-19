@@ -5,11 +5,11 @@ import jwt from "jsonwebtoken";
 import pantryDAO from "../dao/pantry.dao";
 import cookbookDao from "../dao/cookbook.dao";
 import preferencesDAO from "../dao/preferences.dao"; // Add this import
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-router.get("/test", (req: Request, res: Response): void => {
+router.get("/test", (_req: Request, res: Response): void => {
   console.log("Hello World");
   res.status(200).json({
     message: "Server is running and the test endpoint is working!",

@@ -1,4 +1,4 @@
-import { Recipe, Tag } from "./recipe";
+import { Recipe } from "./recipe";
 
 export type Cookbook = {
     userid: string;
@@ -11,20 +11,3 @@ export const createCookbook = (userid: string, recipes: Recipe[] = []): Cookbook
         recipes,
     };
 };
-
-/* const addRecipe = (cookbook: Cookbook, recipe: CreationRecipeDTO): void => {
-    cookbook.recipes.push(recipe);
-};
-
-const removeRecipe = (cookbook: Cookbook, recipe: CreationRecipeDTO): void => {
-    cookbook.recipes = cookbook.recipes.filter((r) => r !== recipe);
-};
-
-
-// TODO? Search recipe only by tag name. No description required
-const searchRecipesByTagName = (cookbook: Cookbook, tagName: string): CreationRecipeDTO[] => {
-    return cookbook.recipes.filter((recipe) => containsTagName(recipe, tagName));
-}
-
-// TODO: Add retrieving all recipes from the cookbook
- */

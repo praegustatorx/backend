@@ -1,7 +1,5 @@
-import { None, Result, Some, Option, Ok, Err } from "ts-results-es";
 import * as readline from 'readline';
-import { AskGemini, AskGeminiStream, FetchNutrientInfo, Gemini } from "./gemini";
-import { match } from "assert";
+import { AskGemini, AskGeminiStream, FetchNutrientInfo } from "./gemini";
 import { GenerateContentResponse } from "@google/genai";
 
 const initReadline = () => {

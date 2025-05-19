@@ -27,11 +27,6 @@ export interface AllergyDocument extends Document {
     name: string;
 }
 
-// Schema for a single blacklisted ingredient
-const BlacklistedIngredientSchema = new Schema({
-    value: { type: String, required: true } // Storing the IngredientType string
-});
-
 // Document interface for a single blacklisted ingredient
 export interface BlacklistedIngredientDocument extends Document {
     value: IngredientType;

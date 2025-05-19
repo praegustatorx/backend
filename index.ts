@@ -15,7 +15,7 @@ const startServer = async () => {
         console.log(`Server is running at https://localhost:${port}`);
     });
 
-    app.get('/test', (req: Request, res: Response): void => {
+    app.get('/test', (_req: Request, res: Response): void => {
         res.status(200).json({
             message: 'server is running and the test endpoint is working! yipieee',
         });
