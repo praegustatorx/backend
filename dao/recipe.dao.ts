@@ -1,6 +1,6 @@
-import { Option, Some, None, Result, Ok, Err } from 'ts-results-es';
-import RecipeModel, { RecipeDocument, toRecipe, fromTag, toTag, fromRecipe } from '../database/recipeSchema';
-import { ClientSession, Model, Types } from 'mongoose';
+import { Result, Ok, Err } from 'ts-results-es';
+import RecipeModel, { toRecipe, fromTag, fromRecipe } from '../database/recipeSchema';
+import { ClientSession } from 'mongoose';
 import { BaseRecipe, Recipe, Tag } from '../models/recipe';
 
 export type RecipeDAO = {

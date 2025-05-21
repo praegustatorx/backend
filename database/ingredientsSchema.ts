@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import { createPantryIngredient, DbPantryIngredient, Measurement, newPantryIngredient, Unit } from "../models/ingredient";
+import { DbPantryIngredient, Measurement, newPantryIngredient, Unit } from "../models/ingredient";
 import { createNutrition, NutrientAmount, NutrientUnit, Nutrition } from "../models/nutritional_information";
 import { None, Some } from "ts-results-es";
 

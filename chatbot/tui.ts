@@ -1,7 +1,5 @@
-import { None, Result, Some, Option, Ok, Err } from "ts-results-es";
 import * as readline from 'readline';
-import { AskGemini, AskGeminiStream, Gemini } from "./gemini";
-import { match } from "assert";
+import { AskGemini, AskGeminiStream, FetchNutrientInfo } from "./gemini";
 import { GenerateContentResponse } from "@google/genai";
 
 const initReadline = () => {
@@ -9,9 +7,6 @@ const initReadline = () => {
         input: process.stdin,
         output: process.stdout
     });
-    console.log("=== Gemini Terminal Chat ===");
-    console.log("Type your questions or 'exit' to quit");
-    console.log("============================");
     return rl;
 }
 
@@ -35,7 +30,7 @@ const createNormalPrintHandler = (): PrintHandler => {
     return async (chatId: string, promptText: string) => {
         const response = await AskGemini(chatId, promptText);
         if (response.isOk()) {
-            printResponse(response.unwrap());
+            console.log(response.unwrap());
         } else {
             console.error(`Error: ${response.unwrapErr().message}`);
         }
@@ -45,6 +40,10 @@ const createNormalPrintHandler = (): PrintHandler => {
 // Function to read from terminal and send to Gemini
 export const startTerminalChat = (inChunks: boolean) => {
     const rl = initReadline();
+
+    console.log("=== Gemini Terminal Chat ===");
+    console.log("Type your questions or 'exit' to quit");
+    console.log("============================");
     // Create the appropriate handler based on inChunks
     const printHandler = inChunks ? createStreamPrintHandler() : createNormalPrintHandler();
 
@@ -82,6 +81,39 @@ const printStream = async (stream: AsyncGenerator<GenerateContentResponse>) => {
     console.log(); // Add newline after stream completes
 }
 
-const printResponse = (response: Option<string>) => {
-    response.isSome() ? console.log(response.unwrap()) : console.log("No response received.");
-}
+export const askNutrientInfo = async () => {
+    const rl = initReadline();
+
+    rl.question('Enter ingredient name: ', async (ingredientName) => {
+        if (!ingredientName.trim()) {
+            console.log("Ingredient name cannot be empty.");
+            rl.close();
+            return;
+        }
+
+        console.log(`Fetching nutrient info for: ${ingredientName}`);
+        try {
+            const result = await FetchNutrientInfo(ingredientName.trim());
+            if (result.isOk()) {
+                const nutrientInfo = result.unwrap();
+                console.log("Product Type:", nutrientInfo.type);
+                if (nutrientInfo.nutrition.isSome()) {
+                    const info = nutrientInfo.nutrition.unwrap();
+                    console.log("Nutritional Information:");
+                    console.log("Calories:", info.calories);
+                    console.log("Protein:", info.protein);
+                    console.log("Fat:", info.fat);
+                    console.log("Carbohydrates:", info.carbohydrates);
+                } else {
+                    console.log("No nutritional information found.");
+                }
+            } else {
+                console.error(`Error fetching nutrient info: ${result.unwrapErr().message}`);
+            }
+        } catch (error) {
+            console.error(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            rl.close();
+        }
+    });
+};

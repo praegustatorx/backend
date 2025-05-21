@@ -1,21 +1,12 @@
-import express, { Request, Response, RequestHandler } from 'express';
+import express, { Request, Response } from 'express';
 import pantryDAO from '../dao/pantry.dao';
-import { createExpDate, createExpDateFromMills, createPantryIngredient, Measurement, PantryIngredient, parseExpDate } from '../models/ingredient';
-import { createNutrientAmount, createNutrition, Nutrition } from '../models/nutritional_information';
-import { None, Some } from 'ts-results-es';
-
-// Define a custom request type that includes the user property
-interface RequestWithUser extends Request {
-    user?: {
-        id: string;
-        // other user properties if available
-    };
-}
+import { createPantryIngredient, PantryIngredient, parseExpDate } from '../models/ingredient';
+import { createNutrition } from '../models/nutritional_information';
 
 const router = express.Router();
 
 // GET test
-router.get('/test', (req: Request, res: Response) => {
+router.get('/test', (_req: Request, res: Response) => {
     console.log('Hello World');
     res.status(200).end();
 });

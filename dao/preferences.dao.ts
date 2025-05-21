@@ -1,7 +1,7 @@
 import { Result, Ok, Err } from 'ts-results-es';
 import PreferencesModel, { toPreferences, fromPreferences } from '../database/preferencesSchema';
 import { Preferences, createPreferences as createDefaultDomainPreferences, Allergy, Diet } from '../models/preferences';
-import { ClientSession, Types } from 'mongoose';
+import { ClientSession } from 'mongoose';
 import { IngredientType } from '../models/ingredient'; // Assuming IngredientType is string
 
 export type PreferencesDAO = {

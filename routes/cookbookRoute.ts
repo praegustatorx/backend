@@ -1,13 +1,13 @@
 import express, { Request, Response } from 'express';
 import cookbookDAO from '../dao/cookbook.dao';
 import recipeDAO from '../dao/recipe.dao';
-import { BaseRecipe, BaseRecipeDTO, Recipe, Tag, fromDTO } from '../models/recipe';
+import { BaseRecipeDTO, Recipe, Tag, fromDTO } from '../models/recipe';
 import { None, Some } from 'ts-results-es';
 
 const router = express.Router();
 
 // GET test
-router.get('/test', (req: Request, res: Response): void => {
+router.get('/test', (_req: Request, res: Response): void => {
     console.log('Hello World');
     res.status(200).end();
 });
@@ -31,9 +31,6 @@ router.post('/:userId/recipes', async (req: Request, res: Response) => {
         const recipeData: BaseRecipeDTO = req.body;
 
         const domain = fromDTO(recipeData);
-        /*         console.log('Domain:', domain);
-                domain.ingredients.forEach((ingredient) => { console.warn(ingredient.quantity) }); */
-
         const result = await cookbookDAO.createRecipe(userId, domain);
 
         console.log('Result:', result);
