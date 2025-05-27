@@ -2,9 +2,9 @@ name: Continuous Deployment-GoogleCloudRun
 
 on:
   push:
-    branches: [  "AddCD","release/**" ] 
+    branches: [  "main","release/**" ] 
   pull_request:
-    branches: [  "AddCD","release/**" ]
+    branches: [  "main","release/**" ]
 
 jobs:
   build-and-push:
