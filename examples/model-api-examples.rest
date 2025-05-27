@@ -1,0 +1,66 @@
+###
+# Product Prediction API Examples
+###
+
+# Predict product from an image
+# @name predictProduct
+POST http://localhost:8005/model/predict
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="example.jpg"
+Content-Type: image/jpeg
+
+< ../testing_utils/eggs.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Example Response for predictProduct:
+# ```typescript
+# const {type, info, confidence} = req.body
+# ```
+# ```json
+# {
+#   "type": "Eggs",
+#   "info": {
+#     "value": {
+#       "portion": {
+#         "amount": 100,
+#         "unit": "g"
+#       },
+#       "calories": {
+#         "amount": 155,
+#         "unit": "kcal"
+#       },
+#       "protein": {
+#         "amount": 13,
+#         "unit": "g"
+#       },
+#       "fat": {
+#         "amount": 11,
+#         "unit": "g"
+#       },
+#       "carbohydrates": {
+#         "amount": 1.1,
+#         "unit": "g"
+#       }
+#     }
+#   },
+#   "confidence": 0.9901739358901978
+# }
+# ```
+
+###
+# OCR Product API Examples
+###
+
+# Extract text from product image using OCR
+# @name ocrProduct
+POST http://localhost:8005/model/ocr
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="example.png"
+Content-Type: image/png
+
+< ../testing_utils/exp_date.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--

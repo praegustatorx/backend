@@ -1,8 +1,7 @@
-import express, { Request, Response } from 'express';
+import express, {  } from 'express';
 import cloudinary from '../utils/cloudinary';
 import upload from '../config/multer';
 
-import mongoose from 'mongoose';
 import ImageModel from '../models/image';
 
 

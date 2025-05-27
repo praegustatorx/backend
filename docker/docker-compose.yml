@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  fastapi-app:
+    image: py-backend # Use the image you built
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+  express-app:
+    image: ts-backend
+    ports:
+      - "8005:8005"
+    restart: unless-stopped

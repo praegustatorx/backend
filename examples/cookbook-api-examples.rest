@@ -1,0 +1,155 @@
+# Cookbook API Examples
+
+This document contains example requests for the cookbook API endpoints.
+
+## Test Endpoint
+###
+
+# Test if the API is running
+GET http://localhost:8005/cookbook/test HTTP/1.1
+
+###
+
+
+## Cookbook Endpoints
+
+### Get Cookbook
+
+
+# Get a user's cookbook
+GET http://localhost:8005/cookbook/user123 HTTP/1.1
+
+###
+
+
+### Create Recipe
+
+
+# Create a new recipe in a user's cookbook
+POST http://localhost:8005/cookbook/user123/recipes HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Pasta Carbonara",
+  "description": "Classic Italian pasta dish",
+  "ingredients": [
+    { "type": "spaghetti-123", "quantity": { "amount": 400, "unit": "gram" } },
+    { "type": "eggs-123", "quantity": { "amount": 4, "unit": "cup" } },
+    { "type": "pancetta-123", "quantity": { "amount": 150, "unit": "gram" } },
+    { "type": "parmesan-123", "quantity": { "amount": 50, "unit": "gram" } },
+    { "type": "blackpepper-123" }
+  ],
+  "instructions": [
+    "Cook pasta according to package instructions",
+    "Fry pancetta until crispy",
+    "Beat eggs and mix with grated cheese",
+    "Mix everything together while pasta is hot"
+  ],
+  "tags": [
+    { "name": "Italian", "description": "Italian cuisine" },
+    { "name": "Gluten", "description": "Flour" },
+    { "name": "Pasta" }
+  ]
+  }
+
+###
+
+
+### Delete Recipe
+
+
+# Remove a recipe from a user's cookbook
+DELETE http://localhost:8005/cookbook/user123/recipes/recipe456 HTTP/1.1
+
+###
+
+
+### Get Recipe
+
+
+# Get a specific recipe from a user's cookbook
+GET http://localhost:8005/cookbook/user123/recipes/681b7c6184ade7c60d133f7d HTTP/1.1
+
+###
+
+
+### Search Recipes by Tag
+
+
+# Search for recipes with a specific tag
+GET http://localhost:8005/cookbook/user123/search?tag=Gluten HTTP/1.1
+
+###
+
+
+### Update Recipe
+
+
+# Update an existing recipe
+PUT http://localhost:8005/cookbook/recipes/681b7c6184ade7c60d133f7d HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Updated Spaghetti Carbonara",
+  "description": "An improved version of the classic dish",
+  "ingredients": [
+    { "type": "spaghetti-123", "quantity": { "amount": 350, "unit": "gram" } },
+    { "type": "eggs-123", "quantity": { "amount": 3, "unit": "cup" } },
+    { "type": "pancetta-123", "quantity": { "amount": 120, "unit": "gram" } },
+    { "type": "parmesan-123", "quantity": { "amount": 70, "unit": "gram" } },
+    { "type": "blackpepper-123" }
+  ],
+  "instructions": [
+    "Cook pasta until al dente",
+    "Fry pancetta until golden and crispy",
+    "Beat eggs and mix with freshly grated cheese",
+    "Combine all ingredients while pasta is still hot",
+    "Serve immediately with extra cheese on top"
+  ],
+  "tags": [
+    { "name": "Italian" },
+    { "name": "Pasta" },
+    { "name": "Dinner" }
+  ]
+}
+
+###
+
+
+### Add Tag to Recipe
+
+
+# Add a new tag to a recipe
+POST http://localhost:8005/cookbook/recipes/681b7c6184ade7c60d133f7d/tags HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Favorite",
+  "description": "My favorite recipes"
+}
+
+###
+
+
+### Remove Tag from Recipe
+
+
+# Remove a tag from a recipe
+DELETE http://localhost:8005/cookbook/recipes/681b7c6184ade7c60d133f7d/tags/Favorite HTTP/1.1
+
+###
+
+
+### Update Recipe Description
+
+
+# Update just the description of a recipe
+PUT http://localhost:8005/cookbook/recipes/681b7c6184ade7c60d133f7d/description HTTP/1.1
+Content-Type: application/json
+
+{
+  "description": "A delicious and authentic Italian pasta dish that's ready in minutes"
+}
+
+###
+

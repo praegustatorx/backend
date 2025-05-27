@@ -1,0 +1,27 @@
+### Example for POST /
+POST http://localhost:8005/chat/
+Content-Type: application/json
+
+{
+  "id": "some-chat-id",
+  "message": "Hello, how are you?"
+}
+
+###
+POST http://localhost:8005/chat/
+Content-Type: application/json
+
+{
+  "id": "some-chat-id",
+  "message": "Suggest recipes for tacos"
+}
+
+
+### Example for POST /stream
+POST http://localhost:3000/chat/stream
+Content-Type: application/json
+
+{
+  "id": "some-chat-id",
+  "message": "Tell me a story."
+}
